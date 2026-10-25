@@ -1,6 +1,6 @@
 .PHONY: build test vet fmt clean manpage
 
-BINARY := bin/vecmap
+BINARY := build/vecmap
 
 build:
 	go build -o $(BINARY) ./cmd/vecmap

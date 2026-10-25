@@ -147,7 +147,7 @@ var commandDocs = map[string]commandDoc{
 
 var globalOptions = []optionDoc{
 	{Flag: "--db PATH", En: "Local database path (default ~/.vecmap/vecmap.db)", Zh: "本地数据库路径（默认 ~/.vecmap/vecmap.db）"},
-	{Flag: "--lang en|zh", En: "UI and report language (default from VECMAP_LANG, else en)", Zh: "界面与报告语言（默认取 VECMAP_LANG，否则 en）"},
+	{Flag: "--lang en|zh", En: "UI and report language (default: VECMAP_LANG, then system locale, else en)", Zh: "界面与报告语言（默认：VECMAP_LANG，其次系统 locale，否则 en）"},
 	{Flag: "--verbose", En: "Verbose protocol logging", Zh: "输出底层协议调试日志"},
 	{Flag: "--help, -h", En: "Show help for the command", Zh: "显示该命令的帮助"},
 	{Flag: "--usage", En: "Print the command synopsis only", Zh: "仅输出命令语法"},
@@ -313,6 +313,25 @@ func StatusStyle(status, text string) string {
 	return paint(style, text)
 }
 
+// DefaultLanguage 根据环境检测默认界面语言。
+//
+// 优先级：VECMAP_LANG > LANG/LC_ALL/LC_MESSAGES 中的 zh 前缀 > en。
+// 返回 en 或 zh。
+func DefaultLanguage() string {
+	if value := strings.TrimSpace(os.Getenv("VECMAP_LANG")); value != "" {
+		if strings.HasPrefix(strings.ToLower(value), "zh") {
+			return "zh"
+		}
+		return "en"
+	}
+	for _, key := range []string{"LANG", "LC_ALL", "LC_MESSAGES"} {
+		if strings.Contains(strings.ToLower(os.Getenv(key)), "zh") {
+			return "zh"
+		}
+	}
+	return "en"
+}
+
 // colorsEnabled 判断终端是否支持彩色输出。
 //
 // 遵守 NO_COLOR 约定，TERM=dumb 时也禁用彩色。
@@ -397,23 +416,21 @@ func renderOverview(language string) string {
 	}
 	output.WriteString("\n")
 	output.WriteString(paint(helpTitle, localized(zh, "EXAMPLES", "示例")) + "\n")
-	for _, example := range scanExamples {
-		output.WriteString("  " + paint(helpDim, example.En) + "\n")
-	}
+	renderExampleLines(&output, language, scanExamples)
 	output.WriteString("\n")
 	output.WriteString(paint(helpTitle, localized(zh, "TARGET FORMATS", "目标格式")) + "\n")
 	output.WriteString("  http://host:6333  https://host  redis://host:6379  postgres://user:pass@host/db  grpc://host:19530\n")
-	output.WriteString("  10.0.0.5:6333    10.0.0.0/24 (CIDR, expand with --ports)\n\n")
+	output.WriteString("  " + localized(zh, "10.0.0.5:6333    10.0.0.0/24 (CIDR, expand with --ports)", "10.0.0.5:6333    10.0.0.0/24（CIDR，配合 --ports 展开）") + "\n\n")
 	output.WriteString(paint(helpTitle, localized(zh, "EXIT STATUS", "退出码")) + "\n")
-	output.WriteString("  0  success        1  runtime error        2  usage error\n\n")
+	output.WriteString("  " + localized(zh, "0  success        1  runtime error        2  usage error", "0  成功    1  运行期错误    2  用法错误") + "\n\n")
 	output.WriteString(paint(helpTitle, localized(zh, "ENVIRONMENT", "环境变量")) + "\n")
-	output.WriteString("  VECMAP_DB     default database path (overrides ~/.vecmap/vecmap.db)\n")
-	output.WriteString("  VECMAP_LANG   default UI language (en|zh)\n")
-	output.WriteString("  NO_COLOR      disable colored output\n")
-	output.WriteString("  HTTP_PROXY / HTTPS_PROXY   honored when --proxy is not set\n\n")
+	output.WriteString("  " + localized(zh, "VECMAP_DB     default database path (overrides ~/.vecmap/vecmap.db)", "VECMAP_DB     默认数据库路径（覆盖 ~/.vecmap/vecmap.db）") + "\n")
+	output.WriteString("  " + localized(zh, "VECMAP_LANG   default UI language (en|zh)", "VECMAP_LANG   默认界面语言（en|zh）") + "\n")
+	output.WriteString("  " + localized(zh, "NO_COLOR      disable colored output", "NO_COLOR      关闭彩色输出") + "\n")
+	output.WriteString("  " + localized(zh, "HTTP_PROXY / HTTPS_PROXY   honored when --proxy is not set", "HTTP_PROXY / HTTPS_PROXY   未指定 --proxy 时生效") + "\n\n")
 	output.WriteString(paint(helpTitle, localized(zh, "FILES", "文件")) + "\n")
-	output.WriteString("  ~/.vecmap/vecmap.db   local session database (dir 0700, file 0600)\n")
-	output.WriteString("  <--output path>       session reports (0600)\n\n")
+	output.WriteString("  " + localized(zh, "~/.vecmap/vecmap.db   local session database (dir 0700, file 0600)", "~/.vecmap/vecmap.db   本地会话数据库（目录 0700、文件 0600）") + "\n")
+	output.WriteString("  " + localized(zh, "<--output path>       session reports (0600)", "<--output 路径>        会话报告（0600）") + "\n\n")
 	output.WriteString(paint(helpWarn, localized(zh,
 		"AUTHORIZATION: you must obtain written permission for every target",
 		"授权声明：必须事先取得每个目标范围的书面授权")) + "\n")
@@ -424,6 +441,24 @@ func renderOverview(language string) string {
 		"See 'vecmap help <command>' for per-command options, and 'vecmap man' for the manual.",
 		"使用 'vecmap help <命令>' 查看单条命令参数，'vecmap man' 输出手册页。")) + "\n")
 	return output.String()
+}
+
+// renderExampleLines 输出示例块，按语言选择英文或中文注释。
+//
+// 参数 output 为输出缓冲，language 为 en 或 zh，examples 为示例列表。
+func renderExampleLines(output *strings.Builder, language string, examples []exampleDoc) {
+	zh := language == "zh"
+	for _, example := range examples {
+		line := example.En
+		if zh && example.Zh != "" {
+			line = example.Zh
+		}
+		if strings.HasPrefix(line, "#") {
+			output.WriteString("  " + paint(helpDim, line) + "\n")
+			continue
+		}
+		output.WriteString("  " + line + "\n")
+	}
 }
 
 func renderCommandHelp(language string, doc commandDoc) string {
@@ -443,13 +478,7 @@ func renderCommandHelp(language string, doc commandDoc) string {
 	}
 	if len(doc.Examples) > 0 {
 		output.WriteString(paint(helpTitle, localized(zh, "EXAMPLES", "示例")) + "\n")
-		for _, example := range doc.Examples {
-			if strings.HasPrefix(example.En, "#") {
-				output.WriteString("  " + paint(helpDim, example.En) + "\n")
-				continue
-			}
-			output.WriteString("  " + example.En + "\n")
-		}
+		renderExampleLines(&output, language, doc.Examples)
 		output.WriteString("\n")
 	}
 	output.WriteString(paint(helpDim, localized(zh,

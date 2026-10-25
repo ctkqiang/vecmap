@@ -88,7 +88,7 @@ func ParseArgs(args []string) (*Command, error) {
 	}
 	command := &Command{
 		Action:      args[0],
-		Language:    envOr("VECMAP_LANG", "en"),
+		Language:    DefaultLanguage(),
 		DBPath:      os.Getenv("VECMAP_DB"),
 		Timeout:     8 * time.Second,
 		Concurrency: 8,

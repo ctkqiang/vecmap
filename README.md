@@ -91,6 +91,12 @@ source <(./bin/vecmap completion bash)   # bash
 | `NO_COLOR` | 关闭彩色输出 |
 | `HTTP_PROXY` / `HTTPS_PROXY` | 未指定 `--proxy` 时由 HTTP 客户端使用 |
 
+### 本地化
+
+- 帮助、错误提示、会话/公告表格、扫描报告卡与报告（Markdown/HTML/JSON）均支持中英双语。
+- 语言优先级：`--lang` 参数 > `VECMAP_LANG` 环境变量 > 系统 locale（`LANG`/`LC_ALL`/`LC_MESSAGES` 含 `zh` 自动用中文）> 英文。
+- 示例：`LANG=zh_CN.UTF-8 vecmap help` 直接输出全中文帮助；`vecmap help --lang en` 切回英文。
+
 ### 终端体验
 
 - 扫描启动时打印彩色 ASCII banner，风险发现按严重度着色

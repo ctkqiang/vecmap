@@ -66,7 +66,7 @@ func NewLite(config Config) (*App, error) {
 		return nil, err
 	}
 	if config.Language != "zh" && config.Language != "en" {
-		config.Language = "en"
+		config.Language = DefaultLanguage()
 	}
 	return &App{
 		catalog:  engine.NewAdvisoryCatalog(extra),

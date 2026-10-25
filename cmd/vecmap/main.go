@@ -33,7 +33,7 @@ func printUsageHint(args []string) {
 	if len(args) > 0 {
 		action = strings.ToLower(args[0])
 	}
-	lite, err := app.NewLite(app.Config{Language: "en"})
+	lite, err := app.NewLite(app.Config{Language: app.DefaultLanguage()})
 	if err != nil {
 		return
 	}

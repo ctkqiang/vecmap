@@ -134,6 +134,47 @@ func TestHelpChinese(t *testing.T) {
 	}
 }
 
+func TestHelpChineseFullyLocalized(t *testing.T) {
+	application, err := app.NewLite(app.Config{Language: "zh"})
+	if err != nil {
+		t.Fatalf("NewLite: %v", err)
+	}
+	content := application.Help("")
+	for _, want := range []string{"退出码", "环境变量", "目标格式", "文件", "默认数据库路径", "本地会话数据库", "配合 --ports 展开", "授权声明", "向量数据库攻击面评估框架"} {
+		if !strings.Contains(content, want) {
+			t.Fatalf("expected Chinese overview to contain %q", want)
+		}
+	}
+	if strings.Contains(content, "runtime error") {
+		t.Fatalf("expected exit-status section to be localized")
+	}
+	scan := application.Help("scan")
+	if !strings.Contains(scan, "标准扫描单个 Qdrant 主机") {
+		t.Fatalf("expected Chinese example comments in scan help, got:\n%s", scan)
+	}
+}
+
+func TestDefaultLanguageLocaleDetection(t *testing.T) {
+	t.Setenv("VECMAP_LANG", "")
+	t.Setenv("LC_ALL", "")
+	t.Setenv("LANG", "zh_CN.UTF-8")
+	if got := app.DefaultLanguage(); got != "zh" {
+		t.Fatalf("expected zh from locale, got %q", got)
+	}
+	t.Setenv("LANG", "en_US.UTF-8")
+	if got := app.DefaultLanguage(); got != "en" {
+		t.Fatalf("expected en from locale, got %q", got)
+	}
+}
+
+func TestDefaultLanguageEnvWins(t *testing.T) {
+	t.Setenv("LANG", "zh_CN.UTF-8")
+	t.Setenv("VECMAP_LANG", "en")
+	if got := app.DefaultLanguage(); got != "en" {
+		t.Fatalf("expected VECMAP_LANG to override locale, got %q", got)
+	}
+}
+
 func TestManPage(t *testing.T) {
 	application, err := app.NewLite(app.Config{Language: "en"})
 	if err != nil {
