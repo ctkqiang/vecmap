@@ -121,7 +121,7 @@ func ParseArgs(args []string) (*Command, error) {
 	case "version":
 		parseGlobalFlags(command, args[1:])
 	case "help":
-		command.HelpTopic = firstArg(args[1:])
+		parseHelpFlags(command, args[1:])
 	case "man":
 		parseGlobalFlags(command, args[1:])
 	case "completion":
@@ -215,6 +215,39 @@ func parseGlobalFlags(command *Command, args []string) {
 	set.BoolVar(&command.UsageFlag, "usage", false, "print synopsis only")
 	set.BoolVar(&command.Help, "h", false, "show help")
 	_ = set.Parse(args)
+}
+
+// parseHelpFlags 解析 help 命令的全局参数并提取帮助主题。
+//
+// 参数 args 为 help 后的参数；位置参数视为帮助主题。
+// Go flag 会在首个位置参数处停止解析，因此对剩余参数手工扫描
+// --lang/--lang= 形态，保证 `help scan --lang zh` 同样生效。
+func parseHelpFlags(command *Command, args []string) {
+	set := flag.NewFlagSet("help", flag.ContinueOnError)
+	set.StringVar(&command.Language, "lang", command.Language, "language (en|zh)")
+	set.BoolVar(&command.Verbose, "verbose", false, "verbose output")
+	set.BoolVar(&command.Help, "help", false, "show help")
+	set.BoolVar(&command.UsageFlag, "usage", false, "print synopsis only")
+	_ = set.Parse(args)
+	remaining := set.Args()
+	for index := 0; index < len(remaining); index++ {
+		arg := remaining[index]
+		switch {
+		case arg == "--lang" || arg == "-lang":
+			if index+1 < len(remaining) {
+				command.Language = remaining[index+1]
+			}
+			index++
+		case strings.HasPrefix(arg, "--lang="):
+			command.Language = strings.TrimPrefix(arg, "--lang=")
+		case strings.HasPrefix(arg, "-lang="):
+			command.Language = strings.TrimPrefix(arg, "-lang=")
+		default:
+			if command.HelpTopic == "" {
+				command.HelpTopic = strings.ToLower(arg)
+			}
+		}
+	}
 }
 
 func parseScanFlags(command *Command, args []string) {

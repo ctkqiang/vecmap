@@ -24,6 +24,21 @@ func TestParseArgsHelpTopic(t *testing.T) {
 	if command.HelpTopic != "report" {
 		t.Fatalf("expected report topic, got %q", command.HelpTopic)
 	}
+	// --lang 出现在主题前后均需生效
+	command, err = app.ParseArgs([]string{"help", "--lang", "en", "scan"})
+	if err != nil {
+		t.Fatalf("ParseArgs: %v", err)
+	}
+	if command.HelpTopic != "scan" || command.Language != "en" {
+		t.Fatalf("unexpected help parse: topic=%s lang=%s", command.HelpTopic, command.Language)
+	}
+	command, err = app.ParseArgs([]string{"help", "scan", "--lang=zh"})
+	if err != nil {
+		t.Fatalf("ParseArgs: %v", err)
+	}
+	if command.HelpTopic != "scan" || command.Language != "zh" {
+		t.Fatalf("unexpected help parse: topic=%s lang=%s", command.HelpTopic, command.Language)
+	}
 }
 
 func TestParseArgsGlobalVersion(t *testing.T) {

@@ -3,6 +3,8 @@ package app
 import (
 	"fmt"
 	"os"
+	"os/exec"
+	"runtime"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
@@ -323,7 +325,8 @@ func StatusStyle(status, text string) string {
 
 // DefaultLanguage 根据环境检测默认界面语言。
 //
-// 优先级：VECMAP_LANG > LANG/LC_ALL/LC_MESSAGES 中的 zh 前缀 > en。
+// 优先级：VECMAP_LANG > LANG/LC_ALL/LC_MESSAGES（显式设置即生效）>
+// macOS 系统首选语言（AppleLocale，仅当 locale 变量全部为空）> en。
 // 返回 en 或 zh。
 func DefaultLanguage() string {
 	if value := strings.TrimSpace(os.Getenv("VECMAP_LANG")); value != "" {
@@ -333,11 +336,33 @@ func DefaultLanguage() string {
 		return "en"
 	}
 	for _, key := range []string{"LANG", "LC_ALL", "LC_MESSAGES"} {
-		if strings.Contains(strings.ToLower(os.Getenv(key)), "zh") {
+		value := strings.TrimSpace(os.Getenv(key))
+		if value == "" {
+			continue
+		}
+		if strings.Contains(strings.ToLower(value), "zh") {
 			return "zh"
 		}
+		return "en"
+	}
+	if strings.Contains(strings.ToLower(appleLocale()), "zh") {
+		return "zh"
 	}
 	return "en"
+}
+
+// appleLocale 读取 macOS 系统首选语言。
+//
+// 返回形如 zh_CN 或 en_US 的文本；非 macOS 或读取失败时返回空字符串。
+func appleLocale() string {
+	if runtime.GOOS != "darwin" {
+		return ""
+	}
+	output, err := exec.Command("defaults", "read", "-g", "AppleLocale").Output()
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(string(output))
 }
 
 // colorsEnabled 判断终端是否支持彩色输出。
