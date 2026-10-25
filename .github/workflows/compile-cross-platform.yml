@@ -1,0 +1,245 @@
+# =============================================================================
+# vecmap 跨平台编译工作流
+# 支持 macOS、Ubuntu、Windows 三平台自动执行 make build 并归档产物
+#
+# 说明：
+#   - vecmap 依赖 CGO（SQLite 驱动），各平台均需本机 C 工具链：
+#     macOS 使用 Xcode Command Line Tools，Ubuntu 使用 gcc，
+#     Windows 使用 Chocolatey 安装 mingw 与 make（Git Bash 执行）
+#   - 产物以 artifact 形式保留 30 天，可在 Actions 页面下载
+#   - tag（v*）推送时自动创建 GitHub Release
+# =============================================================================
+
+name: 跨平台编译
+
+on:
+  push:
+    branches: [main, master]
+    tags: ['v*']
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  # ===========================================================================
+  # macOS 编译（arm64 主机，附加 amd64 交叉编译）
+  # ===========================================================================
+  compile-macos:
+    name: 编译 - macOS
+    runs-on: macos-latest
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Go 工具链
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: 编译 (make build)
+        run: make build
+
+      - name: 交叉编译 amd64 产物
+        run: |
+          CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -o build/vecmap-darwin-amd64 ./cmd/vecmap
+          CGO_ENABLED=1 GOOS=darwin GOARCH=arm64 go build -o build/vecmap-darwin-arm64 ./cmd/vecmap
+
+      - name: 验证构建产物
+        run: |
+          echo "::group::构建产物检查"
+          ls -la build/
+          file build/vecmap build/vecmap-darwin-amd64 build/vecmap-darwin-arm64
+          echo "::endgroup::"
+
+      - name: 上传构建产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: vecmap-macos
+          path: |
+            build/vecmap-darwin-amd64
+            build/vecmap-darwin-arm64
+          retention-days: 30
+
+  # ===========================================================================
+  # Ubuntu 编译（amd64 主机，附加 arm64 交叉编译）
+  # ===========================================================================
+  compile-ubuntu:
+    name: 编译 - Ubuntu
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Go 工具链
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: 编译 (make build)
+        run: make build
+
+      # SQLite 驱动依赖 CGO，arm64 交叉编译需要 aarch64 交叉编译器
+      - name: 交叉编译 arm64 产物（树莓派 / ARM 服务器）
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+          CGO_ENABLED=1 GOOS=linux GOARCH=arm64 CC=aarch64-linux-gnu-gcc \
+            go build -o build/vecmap-linux-arm64 ./cmd/vecmap
+
+      - name: 验证构建产物
+        run: |
+          echo "::group::构建产物检查"
+          ls -la build/
+          file build/vecmap build/vecmap-linux-arm64
+          ldd build/vecmap || true
+          echo "::endgroup::"
+
+      - name: 上传构建产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: vecmap-ubuntu
+          path: |
+            build/vecmap
+            build/vecmap-linux-arm64
+          retention-days: 30
+
+  # ===========================================================================
+  # Windows 编译（Git Bash + mingw C 工具链）
+  # ===========================================================================
+  compile-windows:
+    name: 编译 - Windows
+    runs-on: windows-latest
+    defaults:
+      run:
+        # Git Bash：Makefile 依赖 uname/rm/mkdir 等 Unix 工具
+        shell: bash
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Go 工具链
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: 安装 make 与 mingw
+        run: |
+          choco install make mingw -y --no-progress
+          echo "C:/ProgramData/chocolatey/bin" >> "$GITHUB_PATH"
+          echo "C:/ProgramData/mingw64/mingw64/bin" >> "$GITHUB_PATH"
+
+      - name: 编译 (make build)
+        run: make build
+
+      - name: 重命名产物为 .exe
+        run: mv build/vecmap build/vecmap.exe
+
+      - name: 验证构建产物
+        run: |
+          echo "::group::构建产物检查"
+          ls -la build/
+          file build/vecmap.exe
+          echo "::endgroup::"
+
+      - name: 上传构建产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: vecmap-windows
+          path: |
+            build/vecmap.exe
+          retention-days: 30
+
+  # ===========================================================================
+  # 构建状态汇总
+  # ===========================================================================
+  build-summary:
+    name: 构建汇总
+    runs-on: ubuntu-latest
+    needs: [compile-macos, compile-ubuntu, compile-windows]
+    if: always()
+
+    steps:
+      - name: 检查构建结果
+        run: |
+          echo "========================================="
+          echo "  vecmap 跨平台构建结果"
+          echo "========================================="
+          echo ""
+          echo "  macOS:   ${{ needs.compile-macos.result }}"
+          echo "  Ubuntu:  ${{ needs.compile-ubuntu.result }}"
+          echo "  Windows: ${{ needs.compile-windows.result }}"
+          echo ""
+          echo "========================================="
+
+          if [ "${{ needs.compile-macos.result }}" = "failure" ] || \
+             [ "${{ needs.compile-ubuntu.result }}" = "failure" ] || \
+             [ "${{ needs.compile-windows.result }}" = "failure" ]; then
+            echo "::error::一个或多个平台编译失败"
+            exit 1
+          fi
+
+          echo "所有平台编译成功"
+
+  # ===========================================================================
+  # Release：tag 推送时打包三平台产物，创建 GitHub Release
+  # 仅在 tag（v*）推送时运行；普通分支推送只编译不发版
+  # ===========================================================================
+  release:
+    name: 发布 - GitHub Release
+    runs-on: ubuntu-latest
+    needs: [compile-macos, compile-ubuntu, compile-windows]
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 下载三平台构建产物
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      # 产物命名对齐 vecmap-{os}-{arch}
+      - name: 整理发布产物
+        run: |
+          mkdir -p release
+
+          cp artifacts/vecmap-ubuntu/vecmap release/vecmap-linux-amd64
+          cp artifacts/vecmap-ubuntu/vecmap-linux-arm64 release/vecmap-linux-arm64
+          cp artifacts/vecmap-windows/vecmap.exe release/vecmap-windows-amd64.exe
+          cp artifacts/vecmap-macos/vecmap-darwin-amd64 release/vecmap-darwin-amd64
+          cp artifacts/vecmap-macos/vecmap-darwin-arm64 release/vecmap-darwin-arm64
+
+          chmod +x release/*
+          ls -la release/
+
+      - name: 创建 GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/*
+          generate_release_notes: true
+          body: |
+            ## 下载
+
+            | 平台 | 文件 | 说明 |
+            |------|------|------|
+            | macOS (arm64) | `vecmap-darwin-arm64` | Apple Silicon，`chmod +x` 后运行 |
+            | macOS (amd64) | `vecmap-darwin-amd64` | Intel Mac |
+            | Linux (amd64) | `vecmap-linux-amd64` | 单文件二进制，`chmod +x` 后运行 |
+            | Linux (arm64) | `vecmap-linux-arm64` | 树莓派 / ARM 服务器 |
+            | Windows | `vecmap-windows-amd64.exe` | 单文件可执行 |
+
+            > 亦可 `go install github.com/ctkqiang/vecmap/cmd/vecmap@latest`。
+            > 仅限自有或已获书面授权的目标使用。
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

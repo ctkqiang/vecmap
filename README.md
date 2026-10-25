@@ -17,6 +17,7 @@
   <a href="#目标格式"><img src="https://img.shields.io/badge/厂商-Qdrant_·_Milvus_·_Weaviate_·_Chroma_·_Redis_·_ES_·_pgvector_·_Typesense_·_Pinecone_·_Vespa-7C3AED.svg" alt="厂商"></a>
   <a href="#命令一览"><img src="https://img.shields.io/badge/平台-macOS_·_Linux_·_Windows-165DFF.svg" alt="平台"></a>
   <a href="#编译与运行"><img src="https://img.shields.io/badge/构建-make-00B42A.svg" alt="make"></a>
+  <a href="https://github.com/ctkqiang/vecmap/actions/workflows/compile-cross-platform.yml"><img src="https://img.shields.io/github/actions/workflow/status/ctkqiang/vecmap/compile-cross-platform.yml" alt="CI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/许可证-GPL--3.0-blue.svg" alt="GPL-3.0"></a>
 </p>
 
@@ -200,9 +201,17 @@ go install github.com/ctkqiang/vecmap/cmd/vecmap@latest
 > source ~/.zshrc
 > ```
 
-未打 tag 时用 `@main` 安装最新提交；推送 `v1.0.0` 之类的 tag 后 `@latest` 即可解析。
-预编译的跨平台产物可在打 tag 后通过 GitHub Actions 发布到
-[GitHub Releases](https://github.com/ctkqiang/vecmap/releases)（当前尚未配置 CI）。
+未打 tag 时用 `@main` 安装最新提交；推送 `v1.0.0` 之类的 tag 后 `@latest` 即可解析，
+CI（`.github/workflows/compile-cross-platform.yml`）会自动编译三平台产物并发布到
+[GitHub Releases](https://github.com/ctkqiang/vecmap/releases)：
+
+| 平台 | 文件 |
+| ---- | ---- |
+| macOS (arm64) | `vecmap-darwin-arm64` |
+| macOS (amd64) | `vecmap-darwin-amd64` |
+| Linux (amd64) | `vecmap-linux-amd64` |
+| Linux (arm64) | `vecmap-linux-arm64` |
+| Windows | `vecmap-windows-amd64.exe` |
 
 ---
 

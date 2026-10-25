@@ -17,6 +17,7 @@
   <a href="#target-formats"><img src="https://img.shields.io/badge/Vendors-Qdrant_·_Milvus_·_Weaviate_·_Chroma_·_Redis_·_ES_·_pgvector_·_Typesense_·_Pinecone_·_Vespa-7C3AED.svg" alt="Vendors"></a>
   <a href="#commands"><img src="https://img.shields.io/badge/Platform-macOS_·_Linux_·_Windows-165DFF.svg" alt="Platform"></a>
   <a href="#build--run"><img src="https://img.shields.io/badge/Build-make-00B42A.svg" alt="make"></a>
+  <a href="https://github.com/ctkqiang/vecmap/actions/workflows/compile-cross-platform.yml"><img src="https://img.shields.io/github/actions/workflow/status/ctkqiang/vecmap/compile-cross-platform.yml" alt="CI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPL--3.0-blue.svg" alt="GPL-3.0"></a>
 </p>
 
@@ -213,9 +214,17 @@ go install github.com/ctkqiang/vecmap/cmd/vecmap@latest
 > ```
 
 Use `@main` for unreleased commits; `@latest` resolves once a `v*` tag (e.g.
-`v1.0.0`) is pushed. Prebuilt cross-platform binaries can be published to
-[GitHub Releases](https://github.com/ctkqiang/vecmap/releases) via GitHub Actions
-after tagging (CI is not configured yet).
+`v1.0.0`) is pushed, and CI (`.github/workflows/compile-cross-platform.yml`)
+builds and publishes cross-platform binaries to
+[GitHub Releases](https://github.com/ctkqiang/vecmap/releases):
+
+| Platform | File |
+| -------- | ---- |
+| macOS (arm64) | `vecmap-darwin-arm64` |
+| macOS (amd64) | `vecmap-darwin-amd64` |
+| Linux (amd64) | `vecmap-linux-amd64` |
+| Linux (arm64) | `vecmap-linux-arm64` |
+| Windows | `vecmap-windows-amd64.exe` |
 
 ---
 
