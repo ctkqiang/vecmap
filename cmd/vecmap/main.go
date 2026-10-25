@@ -33,11 +33,12 @@ func printUsageHint(args []string) {
 	if len(args) > 0 {
 		action = strings.ToLower(args[0])
 	}
-	lite, err := app.NewLite(app.Config{Language: app.DefaultLanguage()})
+	language := app.DefaultLanguage()
+	lite, err := app.NewLite(app.Config{Language: language})
 	if err != nil {
 		return
 	}
-	fmt.Fprintf(os.Stderr, "%s\nRun 'vecmap help %s' for full usage.\n", lite.UsageSynopsis(action), action)
+	fmt.Fprintf(os.Stderr, "%s\n%s\n", lite.UsageSynopsis(action), utilities.TfIn(language, "cli.hint.full", action))
 }
 
 // run 执行解析后的命令。
@@ -85,7 +86,7 @@ func run(args []string) error {
 	case "delete":
 		return runDelete(application, command)
 	default:
-		return app.Usagef("unknown command %q; run 'vecmap help' for usage", command.Action)
+		return app.Usagef("%s", utilities.TfIn(command.Language, "cli.usage.unknown", command.Action))
 	}
 }
 
@@ -122,10 +123,10 @@ func runLite(command *app.Command) error {
 
 func runScan(application *app.App, command *app.Command) error {
 	if !command.Authorized {
-		return app.Usagef("--authorize is required after obtaining written permission for the targets")
+		return app.Usagef("%s", utilities.TIn(command.Language, "cli.usage.authorize"))
 	}
 	if len(command.Targets) == 0 {
-		return app.Usagef("no targets supplied; run 'vecmap help %s' for usage", command.Action)
+		return app.Usagef("%s", utilities.TfIn(command.Language, "cli.usage.targets", command.Action))
 	}
 	fmt.Println(application.Banner())
 	result, err := application.RunScan(command.BuildScanRequest())
@@ -138,10 +139,10 @@ func runScan(application *app.App, command *app.Command) error {
 
 func runDiscover(application *app.App, command *app.Command) error {
 	if !command.Authorized {
-		return app.Usagef("--authorize is required after obtaining written permission for the targets")
+		return app.Usagef("%s", utilities.TIn(command.Language, "cli.usage.authorize"))
 	}
 	if len(command.Targets) == 0 {
-		return app.Usagef("no hosts supplied; run 'vecmap help discover' for usage")
+		return app.Usagef("%s", utilities.TIn(command.Language, "cli.usage.hosts"))
 	}
 	fmt.Println(application.Banner())
 	_, err := application.RunDiscover(command.BuildScanRequest())
@@ -149,15 +150,18 @@ func runDiscover(application *app.App, command *app.Command) error {
 }
 
 func runSessions(application *app.App) error {
+	language := application.Language()
 	sessions, total, err := application.ListSessions(50, 0)
 	if err != nil {
 		return err
 	}
 	if total == 0 {
-		fmt.Println(utilities.TIn(application.Language(), "report.none"))
+		fmt.Println(utilities.TIn(language, "report.none"))
 		return nil
 	}
-	fmt.Printf("%-24s  %-10s  %-20s  %s\n", "ID", "MODE", "STATUS", "STARTED")
+	fmt.Printf("%-24s  %-10s  %-20s  %s\n",
+		utilities.TIn(language, "cli.table.id"), utilities.TIn(language, "cli.table.mode"),
+		utilities.TIn(language, "cli.table.status"), utilities.TIn(language, "cli.table.started"))
 	for _, session := range sessions {
 		fmt.Printf("%-24s  %-10s  %-20s  %s\n", session.ID, session.Mode,
 			app.StatusStyle(session.Status, session.Status),
@@ -168,7 +172,7 @@ func runSessions(application *app.App) error {
 
 func runReport(application *app.App, command *app.Command) error {
 	if command.SessionID == "" {
-		return app.Usagef("--session is required; run 'vecmap help report' for usage")
+		return app.Usagef("%s", utilities.TfIn(command.Language, "cli.usage.session", "report"))
 	}
 	output, err := application.Report(command.SessionID, command.BuildReportOptions())
 	if err != nil {
@@ -181,20 +185,24 @@ func runReport(application *app.App, command *app.Command) error {
 }
 
 func runAdvisories(application *app.App, command *app.Command) error {
+	language := command.Language
 	advisories := application.Advisories()
-	fmt.Printf("%s\n\n", utilities.TfIn(command.Language, "msg.advisories.count", len(advisories)))
-	fmt.Printf("%-18s  %-12s  %-10s  %-10s  %-34s  %s\n", "ID", "VENDOR", "SEVERITY", "MATCHABLE", "AFFECTED", "TITLE")
+	fmt.Printf("%s\n\n", utilities.TfIn(language, "msg.advisories.count", len(advisories)))
+	fmt.Printf("%-18s  %-12s  %-10s  %-10s  %-34s  %s\n",
+		utilities.TIn(language, "cli.table.id"), utilities.TIn(language, "cli.table.vendor"),
+		utilities.TIn(language, "cli.table.severity"), utilities.TIn(language, "cli.table.matchable"),
+		utilities.TIn(language, "cli.table.affected"), utilities.TIn(language, "cli.table.title"))
 	for _, advisory := range advisories {
 		affected := strings.Join(advisory.Affected, "; ")
 		if affected == "" {
 			affected = "-"
 		}
-		matchable := "no"
+		matchable := utilities.TIn(language, "cli.no")
 		if advisory.Matchable {
-			matchable = "yes"
+			matchable = utilities.TIn(language, "cli.yes")
 		}
 		title := advisory.Title
-		if command.Language == "zh" && advisory.TitleZH != "" {
+		if language == "zh" && advisory.TitleZH != "" {
 			title = advisory.TitleZH
 		}
 		fmt.Printf("%-18s  %-12s  %-10s  %-10s  %-34s  %s\n",
@@ -207,7 +215,7 @@ func runAdvisories(application *app.App, command *app.Command) error {
 
 func runDelete(application *app.App, command *app.Command) error {
 	if command.SessionID == "" {
-		return app.Usagef("--session is required; run 'vecmap help delete' for usage")
+		return app.Usagef("%s", utilities.TfIn(command.Language, "cli.usage.session", "delete"))
 	}
 	if err := application.DeleteSession(command.SessionID); err != nil {
 		return err
@@ -240,14 +248,15 @@ func printScanSummary(application *app.App, result *model.ScanResult) {
 				title = finding.TitleZH
 			}
 			severityText := app.SeverityStyle(finding.Severity, "["+strings.ToUpper(string(finding.Severity))+"]")
-			fmt.Printf("  %-10s %s (%s)\n", severityText, title, finding.Category)
+			category := utilities.TIn(language, "cat."+finding.Category)
+			fmt.Printf("  %-10s %s (%s)\n", severityText, title, category)
 		}
 	}
 	if session := result.Session; session != nil {
-		fmt.Printf("\n  session: %s   status: %s\n", session.ID, app.StatusStyle(session.Status, session.Status))
+		fmt.Printf("  %s\n", utilities.TfIn(language, "cli.summary.session", session.ID, app.StatusStyle(session.Status, session.Status)))
 	}
 	if len(result.Records) > 0 {
-		fmt.Printf("  extracted: %s\n", utilities.TfIn(language, "msg.records.extracted", len(result.Records), len(result.Collections)))
+		fmt.Printf("  %s\n", utilities.TfIn(language, "msg.records.extracted", len(result.Records), len(result.Collections)))
 	}
 	for _, message := range result.Errors {
 		fmt.Printf("  ! %s\n", message)

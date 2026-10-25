@@ -17,6 +17,7 @@ fmt:
 # manpage 将内嵌手册页同步到 docs/vecmap.1，供 man(1) 或安装使用。
 manpage:
 	cp internal/app/data/vecmap.1 docs/vecmap.1
+	cp internal/app/data/vecmap.zh.1 docs/vecmap.zh.1
 
 # clean 只清理构建产物；扫描数据默认保存在 ~/.vecmap/vecmap.db，
 # 如需清理本地会话数据请显式执行: rm -f ~/.vecmap/vecmap.db*

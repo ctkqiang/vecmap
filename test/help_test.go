@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"vecmap/internal/app"
+	"vecmap/internal/utilities"
 )
 
 func TestParseArgsHelpTopic(t *testing.T) {
@@ -172,6 +173,48 @@ func TestDefaultLanguageEnvWins(t *testing.T) {
 	t.Setenv("VECMAP_LANG", "en")
 	if got := app.DefaultLanguage(); got != "en" {
 		t.Fatalf("expected VECMAP_LANG to override locale, got %q", got)
+	}
+}
+
+func TestManPageChinese(t *testing.T) {
+	application, err := app.NewLite(app.Config{Language: "zh"})
+	if err != nil {
+		t.Fatalf("NewLite: %v", err)
+	}
+	content := application.Man()
+	for _, want := range []string{".TH VECMAP 1", ".SH 名称", ".SH 语法", ".SH 退出码", "安全与授权", "书面授权"} {
+		if !strings.Contains(content, want) {
+			t.Fatalf("expected Chinese man page to contain %q", want)
+		}
+	}
+}
+
+func TestCLILocalizationCatalog(t *testing.T) {
+	keys := []string{
+		"cli.usage.missing", "cli.usage.unknown", "cli.usage.completion", "cli.usage.authorize",
+		"cli.usage.targets", "cli.usage.hosts", "cli.usage.session", "cli.hint.full",
+		"cli.table.id", "cli.table.mode", "cli.table.status", "cli.table.started",
+		"cli.table.vendor", "cli.table.severity", "cli.table.matchable", "cli.table.affected",
+		"cli.table.title", "cli.yes", "cli.no", "cli.summary.session",
+		"cat.unauth_api", "cat.extraction", "cat.metrics", "cat.docs", "cat.snapshot",
+		"cat.cors", "cat.exposure", "cat.grpc", "cat.tls", "cat.advisory",
+	}
+	// 部分技术词汇中英文一致（ID、CORS），允许相同。
+	identicalAllowed := map[string]struct{}{"cli.table.id": {}, "cat.cors": {}}
+	for _, key := range keys {
+		en := utilities.TIn("en", key)
+		zh := utilities.TIn("zh", key)
+		if en == key {
+			t.Fatalf("missing English text for %q", key)
+		}
+		if zh == key {
+			t.Fatalf("missing Chinese text for %q", key)
+		}
+		if zh == en {
+			if _, ok := identicalAllowed[key]; !ok {
+				t.Fatalf("expected distinct Chinese text for %q", key)
+			}
+		}
 	}
 }
 

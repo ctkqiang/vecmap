@@ -1,0 +1,260 @@
+.TH VECMAP 1 "2026年10月" "vecmap 1.0.0" "用户命令"
+.SH 名称
+vecmap \- 向量数据库攻击面评估框架
+.SH 语法
+.B vecmap
+.I 命令
+.RI [ 选项 ]
+.RI [ 目标 ...]
+.br
+.B vecmap
+.BR \-h | \-\-help
+.br
+.B vecmap
+.BR \-\-version
+.SH 描述
+.B vecmap
+是一个本地运行、sqlmap 风格的攻击面评估框架，面向向量数据库与检索基础设施。
+它对目标产品与版本进行指纹识别，探测只读管理端点，将识别到的版本与内嵌的
+GitHub Security Advisory 快照（CVE/CNVD）进行关联；在深度模式下还会枚举集合
+并提取记录与向量样本。
+.P
+所有探测严格只读（GET/HEAD/OPTIONS 与只读 POST）。破坏性端点（如
+.BR /management/stop ）
+被硬性拒绝、永不执行。证据、会话、集合、记录与发现均持久化到本地 SQLite
+数据库（WAL 模式）。
+.P
+支持的厂商：Qdrant、Milvus、Weaviate、Chroma、Redis/RediSearch、
+Elasticsearch、OpenSearch、PostgreSQL pgvector、Typesense、Pinecone、Vespa。
+.SH 命令
+.TP
+.B scan
+攻击面扫描：指纹识别、只读探测、公告关联、风险发现。使用
+.B \-\-mode deep
+或
+.B \-\-extract
+可枚举集合并提取记录。
+.TP
+.B discover
+对主机或网段执行 TCP/HTTP/TLS/gRPC/RESP 并发端口发现。
+.TP
+.B dump
+深度枚举与记录提取（等价于
+.BR "\-\-mode deep \-\-extract" ）。
+.TP
+.B sessions
+列出本地持久化的会话，按时间倒序。
+.TP
+.B report
+离线生成会话报告（markdown、json 或 html）。
+.TP
+.B advisories
+列出内置公告目录（内嵌 GHSA 快照）。
+.TP
+.B delete
+删除会话及其全部关联证据（级联删除）。
+.TP
+.B version
+输出版本信息。
+.TP
+.B help
+显示总帮助或单条命令的详细用法。
+.TP
+.B man
+以 roff 格式输出本手册页。
+.TP
+.B completion
+输出 bash 或 zsh 补全脚本。
+.SH 全局参数
+.TP
+.BI \-\-db " 路径"
+本地数据库路径。默认
+.BR ~/.vecmap/vecmap.db
+（可由环境变量
+.B VECMAP_DB
+覆盖）。
+.TP
+.BI \-\-lang " en|zh"
+界面与报告语言。默认取
+.BR VECMAP_LANG ，
+其次系统 locale，否则 en。
+.TP
+.B \-\-verbose
+输出底层协议调试日志。
+.TP
+.BR \-h ", " \-\-help
+显示该命令的帮助。
+.TP
+.B \-\-usage
+仅输出命令语法。
+.SH 扫描与提取参数
+.TP
+.BI \-\-name " 名称"
+会话名称。
+.TP
+.BI \-\-mode " standard|deep"
+扫描模式；deep 执行枚举与提取（默认 standard）。
+.TP
+.BI \-\-ports " 端口"
+裸主机的端口列表（逗号分隔）。
+.TP
+.BI \-\-timeout " 时长"
+单请求超时（默认 8s）。
+.TP
+.BI \-\-concurrency " N"
+并发数（默认 8）。
+.TP
+.BI \-\-rate " N"
+请求速率限制（req/s）。
+.TP
+.B \-\-insecure
+跳过 TLS 证书校验。
+.TP
+.B \-\-fuzz
+扩展只读路径探测。
+.TP
+.B \-\-extract
+提取记录（隐含 deep 模式）。
+.TP
+.BI \-\-collection " 名称"
+仅枚举指定集合。
+.TP
+.BI \-\-namespace " 命名空间"
+仅枚举指定命名空间。
+.TP
+.BI \-\-max\-records " N"
+记录提取上限（默认 200）。
+.TP
+.BI \-\-batch " N"
+分页大小（默认 100）。
+.TP
+.B \-\-vectors
+提取时包含向量采样。
+.TP
+.BI \-\-user\-agent " UA"
+自定义 User\-Agent。
+.TP
+.BI \-\-proxy " URL"
+HTTP(S) 代理。
+.TP
+.BI \-\-header " K:V"
+附加请求头（可重复）。
+.TP
+.BI \-\-advisories " 路径"
+导入外部公告 JSON（未核验条目仅列出，不参与自动匹配）。
+.TP
+.B \-\-dry\-run
+不持久化任何数据。
+.SH 认证参数
+.TP
+.BI \-\-api\-key " KEY"
+API Key；请求头按厂商自动选择（Qdrant 为
+.IR api\-key ，
+Typesense 为
+.IR X\-TYPESENSE\-API\-KEY ，
+Pinecone 为
+.IR Api\-Key ，
+Elasticsearch/OpenSearch 为
+.IR ApiKey ，
+其余为
+.IR Bearer ）。
+.TP
+.BI \-\-bearer " TOKEN"
+Authorization: Bearer 令牌。
+.TP
+.BI \-\-user " USER"
+基础认证用户名。
+.TP
+.BI \-\-pass " PASS"
+基础认证密码。
+.TP
+.BI \-\-database " 名称"
+数据库名、租户路径或 Redis 库号。
+.TP
+.BI \-\-dsn " DSN"
+PostgreSQL 连接串。
+.SH 范围与授权参数
+.TP
+.BI \-\-scope\-cidr " CIDR"
+授权网段（可重复）；配置后未命中即拒绝。
+.TP
+.BI \-\-scope\-domain " 域名"
+授权域名（可重复）。
+.TP
+.BI \-\-scope\-port " 端口"
+授权端口（可重复或逗号列表）。
+.TP
+.BI \-\-exclude\-cidr " CIDR"
+排除网段（可重复）；仅配置排除项时默认宽松。
+.TP
+.BI \-\-exclude\-domain " 域名"
+排除域名（可重复）。
+.TP
+.B \-\-authorize
+确认已获得目标书面授权（必填）。
+.SH 目标格式
+URL
+.RI （ http://host:6333 、 https://host 、 redis://host:6379 、
+.BR postgres://user:pass@host/db 、 grpc://host:19530 ）、
+主机:端口对
+.RI （ 10.0.0.5:6333 ）、
+以及 CIDR 网段
+.RI （ 10.0.0.0/24 ，
+配合
+.B \-\-ports
+展开）。
+.SH 示例
+.PP
+.nf
+vecmap scan \-\-authorize \-\-scope\-cidr 10.0.0.0/24 http://10.0.0.5:6333
+vecmap dump \-\-authorize \-\-max\-records 500 \-\-vectors http://10.0.0.5:6333
+vecmap discover \-\-authorize \-\-scope\-cidr 10.0.0.0/24 10.0.0.0/24
+vecmap report \-\-session ses_1234abcd \-\-format html \-\-output report.html
+vecmap advisories
+.fi
+.SH 退出码
+.TP
+.B 0
+成功。
+.TP
+.B 1
+运行期错误（网络、数据库、适配器）。
+.TP
+.B 2
+用法错误（未知命令、缺少必填参数、缺少
+.BR \-\-authorize ）。
+.SH 环境变量
+.TP
+.B VECMAP_DB
+默认数据库路径（覆盖
+.BR ~/.vecmap/vecmap.db ）。
+.TP
+.B VECMAP_LANG
+默认界面语言（en|zh）。
+.TP
+.B NO_COLOR
+设置后关闭彩色输出（通用约定）。
+.TP
+.B HTTP_PROXY ", " HTTPS_PROXY
+未指定
+.B \-\-proxy
+时由 HTTP 客户端使用。
+.SH 文件
+.TP
+.I ~/.vecmap/vecmap.db
+本地会话数据库（目录 0700、文件 0600、WAL 模式）。
+.TP
+.I <\-\-output 路径>
+会话报告，以 0600 权限写入。
+.SH 安全与授权
+扫描前必须取得每个目标范围的书面授权，并传入
+.BR \-\-authorize 。
+对未拥有或未获授权的系统进行扫描在多数法域属于违法行为。vecmap 不执行任何
+漏洞利用、破坏性操作或拒绝服务，仅做侦察与提取。
+.SH 参见
+.BR vecmap\-help (1)、
+MITRE ATT&CK 框架、
+GitHub Advisory 数据库
+.RI （ https://github.com/advisories ）。
+.SH 作者
+vecmap 项目贡献者。

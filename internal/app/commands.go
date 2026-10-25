@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"vecmap/internal/model"
+	"vecmap/internal/utilities"
 )
 
 // UsageError 表示命令行参数使用错误。
@@ -84,7 +85,7 @@ type Command struct {
 // 返回命令实例；参数非法或缺少命令时返回 UsageError。
 func ParseArgs(args []string) (*Command, error) {
 	if len(args) == 0 {
-		return nil, Usagef("no command supplied; run 'vecmap help' for usage")
+		return nil, Usagef("%s", utilities.TIn(DefaultLanguage(), "cli.usage.missing"))
 	}
 	command := &Command{
 		Action:      args[0],
@@ -126,10 +127,10 @@ func ParseArgs(args []string) (*Command, error) {
 	case "completion":
 		command.Shell = firstArg(args[1:])
 		if command.Shell == "" {
-			return nil, Usagef("completion requires bash or zsh")
+			return nil, Usagef("%s", utilities.TIn(command.Language, "cli.usage.completion"))
 		}
 	default:
-		return nil, Usagef("unknown command %q; run 'vecmap help' for usage", command.Action)
+		return nil, Usagef("%s", utilities.TfIn(command.Language, "cli.usage.unknown", command.Action))
 	}
 	if command.Help && command.Action != "help" {
 		command.HelpTopic = command.Action
