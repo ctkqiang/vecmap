@@ -7,6 +7,19 @@ import "strings"
 // 取值遵循 CVSS 与漏洞披露平台的通用分级，便于报告与工单系统对接。
 type Severity string
 
+const (
+	// SeverityCritical 表示 CVSS 9.0-10.0，可被远程利用且影响机密性、完整性与可用性。
+	SeverityCritical Severity = "critical"
+	// SeverityHigh 表示 CVSS 7.0-8.9，存在显著风险。
+	SeverityHigh Severity = "high"
+	// SeverityMedium 表示 CVSS 4.0-6.9，存在中等风险。
+	SeverityMedium Severity = "medium"
+	// SeverityLow 表示 CVSS 0.1-3.9，风险较低。
+	SeverityLow Severity = "low"
+	// SeverityInfo 表示无直接利用风险的信息类发现。
+	SeverityInfo Severity = "info"
+)
+
 // AuthType 表示目标暴露面使用的认证方式。
 type AuthType string
 
