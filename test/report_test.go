@@ -43,6 +43,12 @@ func TestBuilderRenderChinese(t *testing.T) {
 	if !strings.Contains(content, "风险") {
 		t.Fatalf("expected Chinese section headers, got: %s", content[:200])
 	}
+	if !strings.Contains(content, "远程服务利用") {
+		t.Fatalf("expected localized MITRE technique name in Chinese report")
+	}
+	if !strings.Contains(content, "横向移动") {
+		t.Fatalf("expected localized MITRE tactic name in Chinese report")
+	}
 }
 
 func TestBuilderRenderJSON(t *testing.T) {

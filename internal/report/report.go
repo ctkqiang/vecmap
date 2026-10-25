@@ -54,7 +54,7 @@ func (b *Builder) Build(bundle *model.SessionBundle, advisories []model.Advisory
 		report.Duration = report.EndedAt.Sub(report.StartedAt)
 	}
 	report.Summary = summarizeFindings(bundle.Findings)
-	report.MITRE = summarizeMITRE(bundle.Findings)
+	report.MITRE = summarizeMITRE(bundle.Findings, b.Language)
 	report.Advisories = resolveAdvisories(bundle.Findings, advisories)
 	return report
 }
@@ -115,13 +115,13 @@ func summarizeFindings(findings []*model.Finding) model.RiskSummary {
 	return summary
 }
 
-func summarizeMITRE(findings []*model.Finding) []model.MITREUsage {
+func summarizeMITRE(findings []*model.Finding, language string) []model.MITREUsage {
 	counts := map[string]*model.MITREUsage{}
 	for _, finding := range findings {
 		for _, id := range finding.MITRE() {
 			technique, exists := constant.MITREByID(id)
 			if !exists {
-				technique = model.MITRETechnique{ID: id, Name: id}
+				technique = model.MITRETechnique{ID: id, Name: id, NameZH: id}
 			}
 			usage, ok := counts[id]
 			if !ok {
@@ -140,6 +140,26 @@ func summarizeMITRE(findings []*model.Finding) []model.MITREUsage {
 		return result[left].Technique.ID < result[right].Technique.ID
 	})
 	return result
+}
+
+// mitreName 返回按界面语言本地化的技术名称。
+//
+// 参数 technique 为技术条目，language 为 en 或 zh。
+func mitreName(technique model.MITRETechnique, language string) string {
+	if language == "zh" && technique.NameZH != "" {
+		return technique.NameZH
+	}
+	return technique.Name
+}
+
+// mitreTactic 返回按界面语言本地化的战术名称。
+//
+// 参数 technique 为技术条目，language 为 en 或 zh。
+func mitreTactic(technique model.MITRETechnique, language string) string {
+	if language == "zh" && technique.TacticZH != "" {
+		return technique.TacticZH
+	}
+	return technique.Tactic
 }
 
 func resolveAdvisories(findings []*model.Finding, advisories []model.Advisory) []*model.Advisory {
@@ -348,7 +368,7 @@ func (b *Builder) renderMarkdown(report *model.Report) string {
 		output.WriteString("| ID | Name | Tactic | Count |\n")
 		output.WriteString("|---|---|---|---|\n")
 		for _, usage := range report.MITRE {
-			output.WriteString(fmt.Sprintf("| %s | %s | %s | %d |\n", usage.Technique.ID, markdownEscape(usage.Technique.Name), markdownEscape(usage.Technique.Tactic), usage.Count))
+			output.WriteString(fmt.Sprintf("| %s | %s | %s | %d |\n", usage.Technique.ID, markdownEscape(mitreName(usage.Technique, b.Language)), markdownEscape(mitreTactic(usage.Technique, b.Language)), usage.Count))
 		}
 		output.WriteString("\n")
 	}
@@ -448,7 +468,7 @@ func (b *Builder) renderHTML(report *model.Report) string {
 	body.WriteString("<h2>" + template.HTMLEscapeString(b.t("report.mitre")) + "</h2>")
 	body.WriteString("<table><tr><th>ID</th><th>Name</th><th>Tactic</th><th>Count</th></tr>")
 	for _, usage := range report.MITRE {
-		body.WriteString("<tr><td>" + template.HTMLEscapeString(usage.Technique.ID) + "</td><td>" + template.HTMLEscapeString(usage.Technique.Name) + "</td><td>" + template.HTMLEscapeString(usage.Technique.Tactic) + "</td><td>" + fmt.Sprintf("%d", usage.Count) + "</td></tr>")
+		body.WriteString("<tr><td>" + template.HTMLEscapeString(usage.Technique.ID) + "</td><td>" + template.HTMLEscapeString(mitreName(usage.Technique, b.Language)) + "</td><td>" + template.HTMLEscapeString(mitreTactic(usage.Technique, b.Language)) + "</td><td>" + fmt.Sprintf("%d", usage.Count) + "</td></tr>")
 	}
 	body.WriteString("</table>")
 

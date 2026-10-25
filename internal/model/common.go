@@ -261,11 +261,16 @@ type Reference struct {
 }
 
 // MITRETechnique 表示 MITRE ATT&CK 技术条目。
+//
+// Name/Tactic 为英文名，NameZH/TacticZH 为中文本地化名，
+// 报告层根据界面语言选择对应文本。
 type MITRETechnique struct {
-	ID     string `json:"id"`
-	Name   string `json:"name"`
-	Tactic string `json:"tactic"`
-	URL    string `json:"url"`
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	NameZH   string `json:"name_zh,omitempty"`
+	Tactic   string `json:"tactic"`
+	TacticZH string `json:"tactic_zh,omitempty"`
+	URL      string `json:"url"`
 }
 
 // CVSS 表示通用漏洞评分系统信息。
