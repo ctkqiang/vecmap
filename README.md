@@ -150,7 +150,7 @@ postgres://user:pass@host/db   grpc://host:19530
 
 - 数据库默认 `~/.vecmap/vecmap.db`（`--db` 可改，`VECMAP_DB` 可覆盖），WAL + busy_timeout。
 - 会话聚合目标、步骤、探测、集合、记录、发现与 HTTP 证据，`sessions`/`report` 离线复现。
-- MITRE ATT&CK 目录 83 条 / 14 战术，中英双语；发现自带 T1595/T1046/T1213/T1567 等映射。
+- MITRE ATT&CK 目录 85 条 / 14 战术，中英双语；发现自带 T1595/T1046/T1213/T1567 等映射。
 
 ## 退出码与环境变量
 

@@ -160,7 +160,7 @@ Refresh: `bash scripts/refresh_advisories.sh`. Unverified external advisories
   WAL + busy_timeout.
 - Sessions aggregate targets, steps, probes, collections, records, findings, and
   HTTP evidence; `sessions`/`report` reproduce everything offline.
-- MITRE ATT&CK catalog: 83 techniques across 14 tactics, bilingual; findings map
+- MITRE ATT&CK catalog: 85 techniques across 14 tactics, bilingual; findings map
   to T1595/T1046/T1213/T1567 and more.
 
 ## Exit Codes and Environment Variables
