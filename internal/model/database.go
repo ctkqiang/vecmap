@@ -79,7 +79,11 @@ type VulnerabilityRecord struct {
 	Title       string
 	Severity    string `gorm:"index"`
 	CVE         string `gorm:"index"`
+	Code        string `gorm:"index"` // 非 CVE 发现的代码，见 model 中的 FindingCode 常量
+	Data        string // 非 CVE 发现的参数，JSON 编码，回放时重新生成文案
 	MitreTTP    string
+	Fixed       string // 修复版本，来自公告
+	Reference   string // 公告链接，便于复核
 	Description string
 }
 
@@ -106,6 +110,10 @@ type VulnInput struct {
 	Title       string
 	Severity    string
 	CVE         string
+	Code        string
+	Data        string
 	MitreTTP    string
+	Fixed       string
+	Reference   string
 	Description string
 }

@@ -84,6 +84,7 @@ const (
 	KeyStepVersion     = "step.version.grab"
 	KeyStepVulnCheck   = "step.vuln.check"
 	KeyStepRequest     = "step.http.request"
+	KeyStepDump        = "step.schema.dump"
 
 	// 漏洞发现
 	KeyVulnFound        = "vuln.found"
@@ -105,6 +106,78 @@ const (
 	KeyErrInvalidInput = "err.invalid.input"
 	KeyErrOperation    = "err.operation"
 	KeyErrRetry        = "err.retry"
+
+	// 扫描引擎
+	KeyScanStart          = "scan.start"
+	KeyScanScope          = "scan.scope"
+	KeyScanHosts          = "scan.hosts"
+	KeyScanPorts          = "scan.ports"
+	KeyScanComplete       = "scan.complete"
+	KeyScanSaved          = "scan.saved"
+	KeyScopeInvalid       = "scope.invalid"
+	KeyScopeTooLarge      = "scope.too.large"
+	KeyPortOpen           = "port.open"
+	KeyPortClosed         = "port.closed"
+	KeyFingerprintFound   = "fingerprint.found"
+	KeyFingerprintVersion = "fingerprint.version"
+	KeyAuthAnonymous      = "auth.anonymous"
+	KeyAuthRequired       = "auth.required"
+	KeyCVEHit             = "cve.hit"
+	KeyDumpCollections    = "dump.collections"
+	KeyDumpCollection     = "dump.collection"
+	KeyDumpSamples        = "dump.samples"
+	KeyDumpKnn            = "dump.knn"
+	KeyDumpUnsupported    = "dump.unsupported"
+	KeyScanAborted        = "scan.aborted"
+	KeyScanNoOpenPorts    = "scan.noopen"
+	KeyPortsInvalid       = "ports.invalid"
+
+	// 发现描述（非 CVE 类）
+	KeyFindingAnonymousTitle = "finding.anonymous.title"
+	KeyFindingAnonymousDesc  = "finding.anonymous.desc"
+	KeyFindingMetadataTitle  = "finding.metadata.title"
+	KeyFindingMetadataDesc   = "finding.metadata.desc"
+	KeyFindingExfilTitle     = "finding.exfil.title"
+	KeyFindingExfilDesc      = "finding.exfil.desc"
+	KeyFindingKnnDesc        = "finding.knn.desc"
+
+	// 报告
+	KeyReportHeader      = "report.header"
+	KeyReportSession     = "report.session"
+	KeyReportScope       = "report.scope"
+	KeyReportGenerated   = "report.generated"
+	KeyReportTarget      = "report.target"
+	KeyReportFindings    = "report.findings"
+	KeyReportTTP         = "report.ttp"
+	KeyReportSummary     = "report.summary"
+	KeyReportNoFindings  = "report.nofindings"
+	KeyReportCollections = "report.collections"
+	KeyReportStatus      = "report.status"
+	KeyReportTargets     = "report.targets"
+	KeyReportNoTargets   = "report.notargets"
+	KeyReportTTPLine     = "report.ttp.line"
+	KeyReportFix         = "report.fix"
+	KeyReportReference   = "report.reference"
+	KeyReportTotal       = "report.total"
+	KeyReportSaved       = "report.saved"
+
+	// 命令行
+	KeyCLIUsage          = "cli.usage"
+	KeyCLIUnknownCommand = "cli.unknown"
+	KeyCLISessionNeeded  = "cli.session.needed"
+	KeySessionListRow    = "session.list.row"
+	KeyFlagDB            = "flag.db"
+	KeyFlagJSON          = "flag.json"
+	KeyFlagOut           = "flag.out"
+	KeyFlagScope         = "flag.scope"
+	KeyFlagSession       = "flag.session"
+	KeyFlagPorts         = "flag.ports"
+	KeyFlagWorkers       = "flag.workers"
+	KeyFlagTimeout       = "flag.timeout"
+	KeyFlagSweep         = "flag.sweep"
+	KeyFlagInsecure      = "flag.insecure"
+	KeyFlagVerbose       = "flag.verbose"
+	KeyFlagLimit         = "flag.limit"
 )
 
 // dictionaries 保存两种语言的词典。键缺失时回退到键名本身，
@@ -159,6 +232,7 @@ var dictionaries = map[Language]map[string]string{
 		KeyStepVersion:     "version grab",
 		KeyStepVulnCheck:   "vulnerability check",
 		KeyStepRequest:     "HTTP request",
+		KeyStepDump:        "schema enumeration",
 
 		KeyVulnFound:        "Finding: %s (%s)",
 		KeyVulnNone:         "No vulnerability recorded",
@@ -177,6 +251,74 @@ var dictionaries = map[Language]map[string]string{
 		KeyErrInvalidInput: "Invalid input: %s",
 		KeyErrOperation:    "Operation failed: %v",
 		KeyErrRetry:        "Please retry the operation",
+
+		KeyScanStart:          "Starting scan",
+		KeyScanScope:          "Scope: %s",
+		KeyScanHosts:          "Hosts to scan: %d",
+		KeyScanPorts:          "Ports per host: %d",
+		KeyScanComplete:       "Scan finished in %s",
+		KeyScanSaved:          "Results saved to session %q",
+		KeyScopeInvalid:       "Invalid scope %q: %v",
+		KeyScopeTooLarge:      "Scope expands to %d hosts, above the limit of %d",
+		KeyPortOpen:           "open  %s:%d (%s)",
+		KeyPortClosed:         "closed %s:%d",
+		KeyFingerprintFound:   "Fingerprint: %s %s",
+		KeyFingerprintVersion: "Version: %s",
+		KeyAuthAnonymous:      "Anonymous access allowed",
+		KeyAuthRequired:       "Authentication required",
+		KeyCVEHit:             "%s (%s, CVSS %.1f) affects this version",
+		KeyDumpCollections:    "Collections: %d",
+		KeyDumpCollection:     "  - %s (dim=%d, metric=%s, points=%d)",
+		KeyDumpSamples:        "Records readable without credentials: %d",
+		KeyDumpKnn:            "k-NN query returned data without credentials",
+		KeyDumpUnsupported:    "%s is not supported by the dumper",
+		KeyScanAborted:        "Scan interrupted, partial results saved",
+		KeyScanNoOpenPorts:    "No open vector database port found",
+		KeyPortsInvalid:       "Invalid port list %q: %v",
+
+		KeyFindingAnonymousTitle: "Anonymous access enabled",
+		KeyFindingAnonymousDesc:  "%s accepts unauthenticated API requests, so metadata is reachable by anyone who can reach the port.",
+		KeyFindingMetadataTitle:  "Collection metadata readable without credentials",
+		KeyFindingMetadataDesc:   "%[1]d collection(s) on %[2]s were enumerated without authentication.",
+		KeyFindingExfilTitle:     "Vector data readable without credentials",
+		KeyFindingExfilDesc:      "%[1]d record(s) were read from %[2]s without authentication.",
+		KeyFindingKnnDesc:        "A zero-vector k-NN query returned %d record(s) without authentication.",
+
+		KeyReportHeader:      "vecmap audit report",
+		KeyReportSession:     "Session: %s",
+		KeyReportScope:       "Scope: %s",
+		KeyReportGenerated:   "Generated: %s",
+		KeyReportTarget:      "Target: %s",
+		KeyReportFindings:    "Findings",
+		KeyReportTTP:         "MITRE ATT&CK",
+		KeyReportSummary:     "Summary",
+		KeyReportNoFindings:  "No finding for this target",
+		KeyReportCollections: "Collections",
+		KeyReportStatus:      "Status: %s",
+		KeyReportTargets:     "Targets",
+		KeyReportNoTargets:   "No target recorded",
+		KeyReportTTPLine:     "MITRE ATT&CK: %s %s",
+		KeyReportFix:         "fixed in: %s",
+		KeyReportReference:   "reference: %s",
+		KeyReportTotal:       "total findings: %d",
+		KeyReportSaved:       "JSON report written to %s",
+
+		KeyCLIUsage:          "usage: vecmap <scan|sessions|show> [flags]\n\n  scan     --scope <cidr|host> [--session name] [--ports 8080,6333] [--workers 64] [--timeout 800ms] [--sweep] [--insecure] [--json] [--out file]\n  sessions [--limit 20]\n  show     --session <name> [--json] [--out file]\n\nEvery subcommand accepts --db <path> and --verbose.",
+		KeyCLIUnknownCommand: "Unknown command %q",
+		KeyCLISessionNeeded:  "--session is required",
+		KeySessionListRow:    "  %-20s %-10s scope=%s targets=%d findings=%d started=%s",
+		KeyFlagDB:            "path to the local SQLite database",
+		KeyFlagJSON:          "write the report as JSON",
+		KeyFlagOut:           "JSON output path (default vecmap-<session>.json)",
+		KeyFlagScope:         "target scope: host, CIDR, range or comma separated list",
+		KeyFlagSession:       "session name; an existing session is resumed",
+		KeyFlagPorts:         "comma separated ports or ranges",
+		KeyFlagWorkers:       "concurrent workers",
+		KeyFlagTimeout:       "per-probe timeout",
+		KeyFlagSweep:         "enumerate schemas and run non-destructive k-NN checks",
+		KeyFlagInsecure:      "skip TLS certificate verification",
+		KeyFlagVerbose:       "print debug output",
+		KeyFlagLimit:         "maximum number of sessions to list",
 	},
 	Chinese: {
 		KeyAppTitle:     "vecmap 扫描映射",
@@ -227,6 +369,7 @@ var dictionaries = map[Language]map[string]string{
 		KeyStepVersion:     "版本探测",
 		KeyStepVulnCheck:   "漏洞检测",
 		KeyStepRequest:     "HTTP 请求",
+		KeyStepDump:        "Schema 枚举",
 
 		KeyVulnFound:        "发现漏洞：%s（%s）",
 		KeyVulnNone:         "未记录到漏洞",
@@ -245,6 +388,74 @@ var dictionaries = map[Language]map[string]string{
 		KeyErrInvalidInput: "输入无效：%s",
 		KeyErrOperation:    "操作失败：%v",
 		KeyErrRetry:        "请重试该操作",
+
+		KeyScanStart:          "开始扫描",
+		KeyScanScope:          "目标范围：%s",
+		KeyScanHosts:          "待扫描主机数：%d",
+		KeyScanPorts:          "每台主机端口数：%d",
+		KeyScanComplete:       "扫描完成，耗时 %s",
+		KeyScanSaved:          "结果已保存到会话 %q",
+		KeyScopeInvalid:       "目标范围 %q 无效：%v",
+		KeyScopeTooLarge:      "目标范围展开为 %d 台主机，超过上限 %d",
+		KeyPortOpen:           "开放  %s:%d（%s）",
+		KeyPortClosed:         "关闭  %s:%d",
+		KeyFingerprintFound:   "指纹：%s %s",
+		KeyFingerprintVersion: "版本：%s",
+		KeyAuthAnonymous:      "允许匿名访问",
+		KeyAuthRequired:       "需要身份认证",
+		KeyCVEHit:             "%s（%s，CVSS %.1f）影响该版本",
+		KeyDumpCollections:    "集合数量：%d",
+		KeyDumpCollection:     "  - %s（维度=%d，度量=%s，记录数=%d）",
+		KeyDumpSamples:        "无凭证可读取的记录数：%d",
+		KeyDumpKnn:            "k-NN 检索在无凭证情况下返回了数据",
+		KeyDumpUnsupported:    "%s 暂不支持 Schema 枚举",
+		KeyScanAborted:        "扫描被中断，已保存部分结果",
+		KeyScanNoOpenPorts:    "未发现开放的向量数据库端口",
+		KeyPortsInvalid:       "端口列表 %q 无效：%v",
+
+		KeyFindingAnonymousTitle: "允许匿名访问",
+		KeyFindingAnonymousDesc:  "%s 接受未认证的 API 请求，任何能访问该端口的人都可以读取元数据。",
+		KeyFindingMetadataTitle:  "无凭证即可读取集合元数据",
+		KeyFindingMetadataDesc:   "在 %[2]s 上未认证枚举到 %[1]d 个集合。",
+		KeyFindingExfilTitle:     "无凭证即可读取向量数据",
+		KeyFindingExfilDesc:      "在 %[2]s 上未认证读取到 %[1]d 条记录。",
+		KeyFindingKnnDesc:        "零向量 k-NN 检索在未认证情况下返回了 %d 条记录。",
+
+		KeyReportHeader:      "vecmap 审计报告",
+		KeyReportSession:     "会话：%s",
+		KeyReportScope:       "目标范围：%s",
+		KeyReportGenerated:   "生成时间：%s",
+		KeyReportTarget:      "目标：%s",
+		KeyReportFindings:    "发现",
+		KeyReportTTP:         "MITRE ATT&CK",
+		KeyReportSummary:     "汇总",
+		KeyReportNoFindings:  "该目标未发现问题",
+		KeyReportCollections: "集合",
+		KeyReportStatus:      "状态：%s",
+		KeyReportTargets:     "目标",
+		KeyReportNoTargets:   "未记录任何目标",
+		KeyReportTTPLine:     "MITRE ATT&CK：%s %s",
+		KeyReportFix:         "修复版本：%s",
+		KeyReportReference:   "参考链接：%s",
+		KeyReportTotal:       "发现总数：%d",
+		KeyReportSaved:       "JSON 报告已写入 %s",
+
+		KeyCLIUsage:          "用法：vecmap <scan|sessions|show> [参数]\n\n  scan      --scope <网段|主机> [--session 名称] [--ports 8080,6333] [--workers 64] [--timeout 800ms] [--sweep] [--insecure] [--json] [--out 文件]\n  sessions  [--limit 20]\n  show      --session <名称> [--json] [--out 文件]\n\n所有子命令均支持 --db <路径> 与 --verbose。",
+		KeyCLIUnknownCommand: "未知命令 %q",
+		KeyCLISessionNeeded:  "必须指定 --session",
+		KeySessionListRow:    "  %-20s %-10s 范围=%s 目标数=%d 漏洞数=%d 开始时间=%s",
+		KeyFlagDB:            "本地 SQLite 数据库路径",
+		KeyFlagJSON:          "以 JSON 格式导出报告",
+		KeyFlagOut:           "JSON 输出路径（默认 vecmap-<会话>.json）",
+		KeyFlagScope:         "目标范围：主机、CIDR、区间或逗号分隔列表",
+		KeyFlagSession:       "会话名称；已存在时继续该会话",
+		KeyFlagPorts:         "逗号分隔的端口或端口区间",
+		KeyFlagWorkers:       "并发 worker 数量",
+		KeyFlagTimeout:       "单次探测超时",
+		KeyFlagSweep:         "枚举 Schema 并执行非破坏性 k-NN 验证",
+		KeyFlagInsecure:      "跳过 TLS 证书校验",
+		KeyFlagVerbose:       "输出调试日志",
+		KeyFlagLimit:         "最多列出的会话数量",
 	},
 }
 

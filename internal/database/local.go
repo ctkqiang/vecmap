@@ -372,8 +372,39 @@ func FinishSession(id uint, status string) error {
 	return nil
 }
 
-// UpsertTarget 在会话内记录一个目标。由于 (session, host, port, protocol)
-// 唯一，重复执行同一扫描步骤只会返回既有记录，不会产生重复行。
+// RestartSession 把已有会话重新标记为进行中，用于在既有会话上继续扫描。
+// finished_at 会被清空，避免报告把仍在写入的会话当成已完成。
+func RestartSession(id uint) error {
+	db, err := DB()
+	if err != nil {
+		return err
+	}
+
+	res := db.Model(&model.SessionRecord{}).Where("id = ?", id).Updates(map[string]any{
+		"status":      model.StatusRunning,
+		"finished_at": nil,
+	})
+	if res.Error != nil {
+		return fmt.Errorf("failed to restart session: %w", res.Error)
+	}
+	if res.RowsAffected == 0 {
+		var count int64
+		if err := db.Model(&model.SessionRecord{}).Where("id = ?", id).Count(&count).Error; err != nil {
+			return fmt.Errorf("failed to check session: %w", err)
+		}
+		if count == 0 {
+			return ErrSessionNotFound
+		}
+	}
+	return nil
+}
+
+// UpsertTarget 在会话内记录一个目标。
+//
+// 查重只按 (session, host, port)：端口扫描阶段目标只能标成 TCP，
+// 指纹阶段才会补成 HTTP/HTTPS，若把 protocol 也纳入查重，
+// 重扫同一会话会生成第二个目标，已有漏洞也就无法去重。
+// protocol 只在首次创建时写入，随后由 UpdateTarget 修正。
 func UpsertTarget(sessionID uint, in model.TargetInput) (*model.TargetRecord, error) {
 	db, err := DB()
 	if err != nil {
@@ -385,15 +416,36 @@ func UpsertTarget(sessionID uint, in model.TargetInput) (*model.TargetRecord, er
 		SessionID: sessionID,
 		Host:      in.Host,
 		Port:      in.Port,
-		Protocol:  in.Protocol,
 	}).Attrs(model.TargetRecord{
-		Engine:  in.Engine,
-		Version: in.Version,
+		Protocol: in.Protocol,
+		Engine:   in.Engine,
+		Version:  in.Version,
 	}).FirstOrCreate(target).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to record target: %w", err)
 	}
 	return target, nil
+}
+
+// UpdateTarget 更新已记录端点的引擎、版本与协议，供指纹阶段补齐信息。
+func UpdateTarget(targetID uint, engineName, version, protocol string) error {
+	db, err := DB()
+	if err != nil {
+		return err
+	}
+
+	res := db.Model(&model.TargetRecord{}).Where("id = ?", targetID).Updates(map[string]any{
+		"engine":   engineName,
+		"version":  version,
+		"protocol": protocol,
+	})
+	if res.Error != nil {
+		return fmt.Errorf("failed to update target: %w", res.Error)
+	}
+	if res.RowsAffected == 0 {
+		return ErrTargetNotFound
+	}
+	return nil
 }
 
 // MarkTargetVulnerable 把目标标记为存在漏洞，用于尚未写入明细的场景。
@@ -407,6 +459,32 @@ func MarkTargetVulnerable(targetID uint) error {
 		return fmt.Errorf("failed to flag target as vulnerable: %w", err)
 	}
 	return nil
+}
+
+// HasFinding 判断目标上是否已存在同一发现，用于重扫时去重，
+// 避免漏洞计数被重复累加。匹配顺序为 CVE 编号 → 发现代码 → 标题：
+// 前两者与界面语言无关，切换到另一种语言继续扫描也不会重复入库。
+func HasFinding(targetID uint, cve, code, title string) (bool, error) {
+	db, err := DB()
+	if err != nil {
+		return false, err
+	}
+
+	scope := db.Model(&model.VulnerabilityRecord{}).Where("target_id = ?", targetID)
+	switch {
+	case cve != "":
+		scope = scope.Where("cve = ?", cve)
+	case code != "":
+		scope = scope.Where("code = ?", code)
+	default:
+		scope = scope.Where("title = ?", title)
+	}
+
+	var count int64
+	if err := scope.Count(&count).Error; err != nil {
+		return false, fmt.Errorf("failed to check finding: %w", err)
+	}
+	return count > 0, nil
 }
 
 // AddVulnerability 在同一个事务中写入漏洞并同步目标上的计数与标记，
@@ -423,7 +501,11 @@ func AddVulnerability(sessionID, targetID uint, in model.VulnInput) (*model.Vuln
 		Title:       in.Title,
 		Severity:    in.Severity,
 		CVE:         in.CVE,
+		Code:        in.Code,
+		Data:        in.Data,
 		MitreTTP:    in.MitreTTP,
+		Fixed:       in.Fixed,
+		Reference:   in.Reference,
 		Description: in.Description,
 	}
 
@@ -455,6 +537,24 @@ func FindingsOf(sessionID uint) ([]model.VulnerabilityRecord, error) {
 		return nil, fmt.Errorf("failed to list findings: %w", err)
 	}
 	return vulns, nil
+}
+
+// SessionStats 返回会话下的目标数与漏洞数，供列表视图快速汇总。
+func SessionStats(sessionID uint) (targets, findings int64, err error) {
+	db, err := DB()
+	if err != nil {
+		return 0, 0, err
+	}
+
+	if err := db.Model(&model.TargetRecord{}).Where("session_id = ?", sessionID).
+		Count(&targets).Error; err != nil {
+		return 0, 0, fmt.Errorf("failed to count targets: %w", err)
+	}
+	if err := db.Model(&model.VulnerabilityRecord{}).Where("session_id = ?", sessionID).
+		Count(&findings).Error; err != nil {
+		return 0, 0, fmt.Errorf("failed to count findings: %w", err)
+	}
+	return targets, findings, nil
 }
 
 // RecordStep 向会话历史追加一个步骤。序号在事务内分配，
@@ -502,8 +602,10 @@ func StepsOf(sessionID uint, limit int) ([]model.StepRecord, error) {
 	if limit > 0 {
 		scope = scope.Limit(limit)
 	}
+
 	if err := scope.Find(&steps).Error; err != nil {
 		return nil, fmt.Errorf("failed to list steps: %w", err)
 	}
+
 	return steps, nil
 }
