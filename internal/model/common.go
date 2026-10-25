@@ -7,18 +7,50 @@ import "strings"
 // 取值遵循 CVSS 与漏洞披露平台的通用分级，便于报告与工单系统对接。
 type Severity string
 
+// AuthType 表示目标暴露面使用的认证方式。
+type AuthType string
+
 const (
-	// SeverityCritical 表示可直接导致数据泄露、接管或远程代码执行的风险。
-	SeverityCritical Severity = "critical"
-	// SeverityHigh 表示可导致显著数据暴露或权限提升的风险。
-	SeverityHigh Severity = "high"
-	// SeverityMedium 表示需要特定条件但仍具备实际利用价值的风险。
-	SeverityMedium Severity = "medium"
-	// SeverityLow 表示信息泄露、配置弱点或利用条件较高的风险。
-	SeverityLow Severity = "low"
-	// SeverityInfo 表示仅用于资产画像、版本识别或加固建议的信息。
-	SeverityInfo Severity = "info"
+	// AuthUnknown 表示尚未确认认证要求。
+	AuthUnknown AuthType = "unknown"
+	// AuthNone 表示接口无需认证即可访问。
+	AuthNone AuthType = "none"
+	// AuthAPIKey 表示使用 API Key 认证。
+	AuthAPIKey AuthType = "api_key"
+	// AuthBearer 表示使用 Bearer Token 认证。
+	AuthBearer AuthType = "bearer"
+	// AuthBasic 表示使用 HTTP Basic 认证。
+	AuthBasic AuthType = "basic"
+	// AuthPassword 表示数据库用户名密码认证。
+	AuthPassword AuthType = "password"
 )
+
+// Reference 表示漏洞公告或技术文档来源。
+type Reference struct {
+	Title  string `json:"title"`
+	URL    string `json:"url"`
+	Source string `json:"source"`
+}
+
+// MITRETechnique 表示 MITRE ATT&CK 技术条目。
+//
+// Name/Tactic 为英文名，NameZH/TacticZH 为中文本地化名，
+// 报告层根据界面语言选择对应文本。
+type MITRETechnique struct {
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	NameZH   string `json:"name_zh,omitempty"`
+	Tactic   string `json:"tactic"`
+	TacticZH string `json:"tactic_zh,omitempty"`
+	URL      string `json:"url"`
+}
+
+// CVSS 表示通用漏洞评分系统信息。
+type CVSS struct {
+	Score   float64 `json:"score"`
+	Vector  string  `json:"vector"`
+	Version string  `json:"version"`
+}
 
 // Rank 返回风险等级的可比较权重。
 //
@@ -312,49 +344,4 @@ func ParseVendor(raw string) Vendor {
 	default:
 		return VendorUnknown
 	}
-}
-
-// AuthType 表示目标暴露面使用的认证方式。
-type AuthType string
-
-const (
-	// AuthUnknown 表示尚未确认认证要求。
-	AuthUnknown AuthType = "unknown"
-	// AuthNone 表示接口无需认证即可访问。
-	AuthNone AuthType = "none"
-	// AuthAPIKey 表示使用 API Key 认证。
-	AuthAPIKey AuthType = "api_key"
-	// AuthBearer 表示使用 Bearer Token 认证。
-	AuthBearer AuthType = "bearer"
-	// AuthBasic 表示使用 HTTP Basic 认证。
-	AuthBasic AuthType = "basic"
-	// AuthPassword 表示数据库用户名密码认证。
-	AuthPassword AuthType = "password"
-)
-
-// Reference 表示漏洞公告或技术文档来源。
-type Reference struct {
-	Title  string `json:"title"`
-	URL    string `json:"url"`
-	Source string `json:"source"`
-}
-
-// MITRETechnique 表示 MITRE ATT&CK 技术条目。
-//
-// Name/Tactic 为英文名，NameZH/TacticZH 为中文本地化名，
-// 报告层根据界面语言选择对应文本。
-type MITRETechnique struct {
-	ID       string `json:"id"`
-	Name     string `json:"name"`
-	NameZH   string `json:"name_zh,omitempty"`
-	Tactic   string `json:"tactic"`
-	TacticZH string `json:"tactic_zh,omitempty"`
-	URL      string `json:"url"`
-}
-
-// CVSS 表示通用漏洞评分系统信息。
-type CVSS struct {
-	Score   float64 `json:"score"`
-	Vector  string  `json:"vector"`
-	Version string  `json:"version"`
 }
