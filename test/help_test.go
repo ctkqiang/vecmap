@@ -191,6 +191,27 @@ func TestDefaultLanguageEnvWins(t *testing.T) {
 	}
 }
 
+func TestParseAppleLanguages(t *testing.T) {
+	cases := map[string]string{
+		`(
+    "zh-Hans-CN",
+    en,
+    "ja-JP"
+)`: "zh-Hans-CN",
+		`(
+    en,
+    "zh-Hans"
+)`: "en",
+		`garbage`: "",
+		"":        "",
+	}
+	for input, want := range cases {
+		if got := app.ParseAppleLanguages(input); got != want {
+			t.Fatalf("ParseAppleLanguages(%q) = %q, want %q", input, got, want)
+		}
+	}
+}
+
 func TestManPageChinese(t *testing.T) {
 	application, err := app.NewLite(app.Config{Language: "zh"})
 	if err != nil {

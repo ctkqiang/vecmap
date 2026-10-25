@@ -96,8 +96,10 @@ source <(./bin/vecmap completion bash)   # bash
 - **全部用户可见输出均支持中英双语**：帮助、man 手册页（`vecmap man` 按语言输出中文版）、
   错误与用法提示、sessions/advisories 表头与取值、扫描报告卡（会话/状态/类别标签）、
   发现文本与报告（Markdown/HTML/JSON）。
-- 语言优先级：`--lang` 参数 > `VECMAP_LANG` 环境变量 > 系统 locale（`LANG`/`LC_ALL`/`LC_MESSAGES` 含 `zh` 自动用中文）> 英文。
-- 示例：`LANG=zh_CN.UTF-8 vecmap help` 直接输出全中文帮助；`vecmap man --lang zh` 输出中文手册页。
+- **默认语言跟随设备设置**：优先级 `--lang` 参数 > `VECMAP_LANG` 环境变量 >
+  `LANG`/`LC_ALL`/`LC_MESSAGES` > 设备系统语言（macOS `AppleLanguages`/`AppleLocale`，
+  Linux 即 locale 环境变量）> 英文。中文设备开箱即中文，`--lang=en` 随时切回。
+- 示例：中文 macOS 直接 `vecmap help` 即全中文；`vecmap help --lang=en` 输出英文。
 
 ### 终端体验
 

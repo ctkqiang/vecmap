@@ -149,7 +149,7 @@ var commandDocs = map[string]commandDoc{
 
 var globalOptions = []optionDoc{
 	{Flag: "--db PATH", En: "Local database path (default ~/.vecmap/vecmap.db)", Zh: "本地数据库路径（默认 ~/.vecmap/vecmap.db）"},
-	{Flag: "--lang en|zh", En: "UI and report language (default: VECMAP_LANG, then system locale, else en)", Zh: "界面与报告语言（默认：VECMAP_LANG，其次系统 locale，否则 en）"},
+	{Flag: "--lang en|zh", En: "UI and report language (default: VECMAP_LANG, then device locale, else en)", Zh: "界面与报告语言（默认：VECMAP_LANG，其次设备系统 locale，否则 en）"},
 	{Flag: "--verbose", En: "Verbose protocol logging", Zh: "输出底层协议调试日志"},
 	{Flag: "--help, -h", En: "Show help for the command", Zh: "显示该命令的帮助"},
 	{Flag: "--usage", En: "Print the command synopsis only", Zh: "仅输出命令语法"},
@@ -326,7 +326,7 @@ func StatusStyle(status, text string) string {
 // DefaultLanguage 根据环境检测默认界面语言。
 //
 // 优先级：VECMAP_LANG > LANG/LC_ALL/LC_MESSAGES（显式设置即生效）>
-// macOS 系统首选语言（AppleLocale，仅当 locale 变量全部为空）> en。
+// 设备系统语言（macOS AppleLanguages/AppleLocale，仅当 locale 变量全部为空）> en。
 // 返回 en 或 zh。
 func DefaultLanguage() string {
 	if value := strings.TrimSpace(os.Getenv("VECMAP_LANG")); value != "" {
@@ -345,24 +345,48 @@ func DefaultLanguage() string {
 		}
 		return "en"
 	}
-	if strings.Contains(strings.ToLower(appleLocale()), "zh") {
+	if strings.Contains(strings.ToLower(deviceLocale()), "zh") {
 		return "zh"
 	}
 	return "en"
 }
 
-// appleLocale 读取 macOS 系统首选语言。
+// deviceLocale 读取设备首选语言。
 //
-// 返回形如 zh_CN 或 en_US 的文本；非 macOS 或读取失败时返回空字符串。
-func appleLocale() string {
+// macOS 上依次尝试 AppleLanguages（首选语言列表）与 AppleLocale（区域）；
+// 其他平台返回空字符串。返回形如 zh-Hans-CN 或 en_US 的文本。
+func deviceLocale() string {
 	if runtime.GOOS != "darwin" {
 		return ""
 	}
-	output, err := exec.Command("defaults", "read", "-g", "AppleLocale").Output()
-	if err != nil {
+	if output, err := exec.Command("defaults", "read", "-g", "AppleLanguages").Output(); err == nil {
+		if language := ParseAppleLanguages(string(output)); language != "" {
+			return language
+		}
+	}
+	if output, err := exec.Command("defaults", "read", "-g", "AppleLocale").Output(); err == nil {
+		return strings.TrimSpace(string(output))
+	}
+	return ""
+}
+
+// ParseAppleLanguages 从 AppleLanguages 的 plist 输出中提取首选语言。
+//
+// 参数 raw 为 defaults 输出，形如 '(\n    "zh-Hans-CN",\n    en,\n    ...\n)'。
+// 返回去除引号与空白后的首个语言项；无法解析时返回空字符串。
+func ParseAppleLanguages(raw string) string {
+	raw = strings.TrimSpace(raw)
+	if !strings.HasPrefix(raw, "(") {
 		return ""
 	}
-	return strings.TrimSpace(string(output))
+	inner := strings.TrimSuffix(strings.TrimPrefix(raw, "("), ")")
+	for _, part := range strings.Split(inner, ",") {
+		part = strings.Trim(strings.TrimSpace(part), `"`)
+		if part != "" {
+			return part
+		}
+	}
+	return ""
 }
 
 // colorsEnabled 判断终端是否支持彩色输出。
