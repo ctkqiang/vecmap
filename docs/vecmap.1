@@ -1,0 +1,260 @@
+.TH VECMAP 1 "October 2026" "vecmap 1.0.0" "User Commands"
+.SH NAME
+vecmap \- vector database attack\-surface assessment framework
+.SH SYNOPSIS
+.B vecmap
+.I command
+.RI [ options ]
+.RI [ target ...]
+.br
+.B vecmap
+.BR \-h | \-\-help
+.br
+.B vecmap
+.BR \-\-version
+.SH DESCRIPTION
+.B vecmap
+is a local\-only, sqlmap\-style attack\-surface assessment framework for vector
+databases and retrieval infrastructure. It fingerprints the target product and
+version, probes read\-only management endpoints, correlates the identified
+version against embedded GitHub Security Advisory snapshots (CVE/CNVD), and,
+in deep mode, enumerates collections and extracts records and vector samples.
+.P
+All probes are strictly read\-only (GET/HEAD/OPTIONS and read\-only POST).
+Destructive endpoints such as
+.B /management/stop
+are hard\-denied and never invoked. Evidence, sessions, collections, records
+and findings are persisted in a local SQLite database with WAL.
+.P
+Supported vendors: Qdrant, Milvus, Weaviate, Chroma, Redis/RediSearch,
+Elasticsearch, OpenSearch, PostgreSQL pgvector, Typesense, Pinecone, Vespa.
+.SH COMMANDS
+.TP
+.B scan
+Attack\-surface scan: fingerprinting, read\-only probes, advisory correlation,
+risk findings. Use
+.B \-\-mode deep
+or
+.B \-\-extract
+to enumerate collections and extract records.
+.TP
+.B discover
+Concurrent TCP/HTTP/TLS/gRPC/RESP port discovery across hosts or CIDR ranges.
+.TP
+.B dump
+Deep enumeration and record extraction (implies
+.BR "\-\-mode deep \-\-extract" ).
+.TP
+.B sessions
+List locally persisted sessions, newest first.
+.TP
+.B report
+Render a session report (markdown, json or html) offline.
+.TP
+.B advisories
+List the built\-in advisory catalog (embedded GHSA snapshots).
+.TP
+.B delete
+Delete a session and all associated evidence (cascading).
+.TP
+.B version
+Print the version string.
+.TP
+.B help
+Show the overview or per\-command usage.
+.TP
+.B man
+Print this manual page in roff format.
+.TP
+.B completion
+Print a bash or zsh completion script.
+.SH GLOBAL OPTIONS
+.TP
+.BI \-\-db " PATH"
+Local database path. Default:
+.BR ~/.vecmap/vecmap.db
+(overridden by the
+.B VECMAP_DB
+environment variable).
+.TP
+.BI \-\-lang " en|zh"
+UI and report language. Default from
+.BR VECMAP_LANG ,
+otherwise en.
+.TP
+.B \-\-verbose
+Verbose protocol logging.
+.TP
+.BR \-h ", " \-\-help
+Show help for the command.
+.SH SCAN AND DUMP OPTIONS
+.TP
+.BI \-\-name " NAME"
+Session name.
+.TP
+.BI \-\-mode " standard|deep"
+Scan mode; deep enumerates and extracts (default standard).
+.TP
+.BI \-\-ports " PORTS"
+Ports for bare hosts (comma list).
+.TP
+.BI \-\-timeout " DUR"
+Per\-request timeout (default 8s).
+.TP
+.BI \-\-concurrency " N"
+Concurrency (default 8).
+.TP
+.BI \-\-rate " N"
+Request rate limit in requests per second.
+.TP
+.B \-\-insecure
+Skip TLS certificate verification.
+.TP
+.B \-\-fuzz
+Extended read\-only path probing.
+.TP
+.B \-\-extract
+Extract records (implies deep mode).
+.TP
+.BI \-\-collection " NAME"
+Restrict enumeration to a single collection.
+.TP
+.BI \-\-namespace " NS"
+Restrict enumeration to a single namespace.
+.TP
+.BI \-\-max\-records " N"
+Record extraction limit (default 200).
+.TP
+.BI \-\-batch " N"
+Pagination size (default 100).
+.TP
+.B \-\-vectors
+Include vector samples in extraction.
+.TP
+.BI \-\-user\-agent " UA"
+Custom User\-Agent.
+.TP
+.BI \-\-proxy " URL"
+HTTP(S) proxy.
+.TP
+.BI \-\-header " K:V"
+Extra request header (repeatable).
+.TP
+.BI \-\-advisories " PATH"
+Import an external advisories JSON file (unverified entries are listed only).
+.TP
+.B \-\-dry\-run
+Do not persist anything.
+.SH AUTHENTICATION OPTIONS
+.TP
+.BI \-\-api\-key " KEY"
+API key; the header is chosen per vendor (Qdrant
+.IR api\-key ,
+Typesense
+.IR X\-TYPESENSE\-API\-KEY ,
+Pinecone
+.IR Api\-Key ,
+Elasticsearch/OpenSearch
+.IR ApiKey ,
+others
+.IR Bearer ).
+.TP
+.BI \-\-bearer " TOKEN"
+Authorization: Bearer token.
+.TP
+.BI \-\-user " USER"
+Basic\-auth username.
+.TP
+.BI \-\-pass " PASS"
+Basic\-auth password.
+.TP
+.BI \-\-database " NAME"
+Database name, tenant path, or Redis DB number.
+.TP
+.BI \-\-dsn " DSN"
+PostgreSQL connection string.
+.SH SCOPE AND AUTHORIZATION OPTIONS
+.TP
+.BI \-\-scope\-cidr " CIDR"
+Authorized CIDR (repeatable). When set, unmatched hosts are denied.
+.TP
+.BI \-\-scope\-domain " DOMAIN"
+Authorized domain (repeatable).
+.TP
+.BI \-\-scope\-port " PORT"
+Authorized port (repeatable or comma list).
+.TP
+.BI \-\-exclude\-cidr " CIDR"
+Excluded CIDR (repeatable). Exclusion\-only scopes are otherwise permissive.
+.TP
+.BI \-\-exclude\-domain " DOMAIN"
+Excluded domain (repeatable).
+.TP
+.B \-\-authorize
+Confirmation that written authorization has been obtained (required).
+.SH TARGET FORMATS
+URLs
+.RI ( http://host:6333 ", " https://host ", " redis://host:6379 ", "
+.BR postgres://user:pass@host/db ", " grpc://host:19530 ),
+host:port pairs
+.RI ( 10.0.0.5:6333 ),
+and CIDR ranges
+.RI ( 10.0.0.0/24 ,
+expanded across
+.BR \-\-ports ).
+.SH EXAMPLES
+.PP
+.nf
+vecmap scan \-\-authorize \-\-scope\-cidr 10.0.0.0/24 http://10.0.0.5:6333
+vecmap dump \-\-authorize \-\-max\-records 500 \-\-vectors http://10.0.0.5:6333
+vecmap discover \-\-authorize \-\-scope\-cidr 10.0.0.0/24 10.0.0.0/24
+vecmap report \-\-session ses_1234abcd \-\-format html \-\-output report.html
+vecmap advisories
+.fi
+.SH EXIT STATUS
+.TP
+.B 0
+Success.
+.TP
+.B 1
+Runtime error (network, database, adapter failure).
+.TP
+.B 2
+Usage error (unknown command, missing required argument, missing
+.BR \-\-authorize ).
+.SH ENVIRONMENT
+.TP
+.B VECMAP_DB
+Default database path (overrides
+.BR ~/.vecmap/vecmap.db ).
+.TP
+.B VECMAP_LANG
+Default UI language (en|zh).
+.TP
+.B NO_COLOR
+Disable colored output when set (standard convention).
+.TP
+.B HTTP_PROXY ", " HTTPS_PROXY
+Honored by the HTTP client when
+.B \-\-proxy
+is not set.
+.SH FILES
+.TP
+.I ~/.vecmap/vecmap.db
+Local session database (directory 0700, file 0600, WAL enabled).
+.TP
+.I <\-\-output path>
+Session reports, written with 0600 permissions.
+.SH SECURITY AND AUTHORIZATION
+You must obtain written permission for every target before scanning and pass
+.BR \-\-authorize .
+Unauthorized scanning of systems you do not own or operate is illegal in most
+jurisdictions. vecmap performs no exploits, no destructive operations, and no
+denial\-of\-service; it is a reconnaissance and extraction tool only.
+.SH SEE ALSO
+.BR vecmap\-help (1),
+the MITRE ATT&CK framework,
+the GitHub Advisory Database
+.RI ( https://github.com/advisories ).
+.SH AUTHOR
+vecmap project contributors.

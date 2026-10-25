@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"sort"
@@ -13,6 +14,11 @@ import (
 
 func main() {
 	if err := run(os.Args[1:]); err != nil {
+		var usageError *app.UsageError
+		if errors.As(err, &usageError) {
+			fmt.Fprintf(os.Stderr, "vecmap: %s\n\nRun 'vecmap help' for usage.\n", usageError.Message)
+			os.Exit(2)
+		}
 		fmt.Fprintf(os.Stderr, "vecmap: %s\n", err)
 		os.Exit(1)
 	}
@@ -26,7 +32,7 @@ func run(args []string) error {
 	if err != nil {
 		return err
 	}
-	if command.Action == "version" || command.Action == "help" || command.Action == "advisories" {
+	if command.Action == "version" || command.Action == "help" || command.Action == "advisories" || command.Action == "man" || command.Action == "completion" {
 		return runLite(command)
 	}
 	application, err := app.New(app.Config{
@@ -51,7 +57,7 @@ func run(args []string) error {
 	case "delete":
 		return runDelete(application, command)
 	default:
-		return fmt.Errorf("unknown command: %s", command.Action)
+		return app.Usagef("unknown command %q; run 'vecmap help' for usage", command.Action)
 	}
 }
 
@@ -71,19 +77,27 @@ func runLite(command *app.Command) error {
 	case "version":
 		fmt.Println(application.Version())
 	case "help":
-		fmt.Print(application.Usage())
+		fmt.Print(application.Help(command.HelpTopic))
 	case "advisories":
 		return runAdvisories(application, command)
+	case "man":
+		fmt.Print(application.Man())
+	case "completion":
+		script, err := application.Completion(command.Shell)
+		if err != nil {
+			return app.Usagef("%v", err)
+		}
+		fmt.Print(script)
 	}
 	return nil
 }
 
 func runScan(application *app.App, command *app.Command) error {
 	if !command.Authorized {
-		return fmt.Errorf("%s (pass --authorize after obtaining written permission)", utilities.TIn(command.Language, "err.authorization"))
+		return app.Usagef("--authorize is required after obtaining written permission for the targets")
 	}
 	if len(command.Targets) == 0 {
-		return fmt.Errorf("no targets supplied")
+		return app.Usagef("no targets supplied; run 'vecmap help %s' for usage", command.Action)
 	}
 	result, err := application.RunScan(command.BuildScanRequest())
 	if err != nil {
@@ -95,10 +109,10 @@ func runScan(application *app.App, command *app.Command) error {
 
 func runDiscover(application *app.App, command *app.Command) error {
 	if !command.Authorized {
-		return fmt.Errorf("%s (pass --authorize after obtaining written permission)", utilities.TIn(command.Language, "err.authorization"))
+		return app.Usagef("--authorize is required after obtaining written permission for the targets")
 	}
 	if len(command.Targets) == 0 {
-		return fmt.Errorf("no hosts supplied")
+		return app.Usagef("no hosts supplied; run 'vecmap help discover' for usage")
 	}
 	_, err := application.RunDiscover(command.BuildScanRequest())
 	return err
@@ -122,7 +136,7 @@ func runSessions(application *app.App) error {
 
 func runReport(application *app.App, command *app.Command) error {
 	if command.SessionID == "" {
-		return fmt.Errorf("--session is required")
+		return app.Usagef("--session is required; run 'vecmap help report' for usage")
 	}
 	output, err := application.Report(command.SessionID, command.BuildReportOptions())
 	if err != nil {
@@ -159,7 +173,7 @@ func runAdvisories(application *app.App, command *app.Command) error {
 
 func runDelete(application *app.App, command *app.Command) error {
 	if command.SessionID == "" {
-		return fmt.Errorf("--session is required")
+		return app.Usagef("--session is required; run 'vecmap help delete' for usage")
 	}
 	if err := application.DeleteSession(command.SessionID); err != nil {
 		return err

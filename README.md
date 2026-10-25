@@ -39,11 +39,19 @@ go build -o bin/vecmap ./cmd/vecmap
 ## 使用
 
 ```bash
-# 帮助
+# 帮助（彩色终端输出；NO_COLOR=1 关闭）
 ./bin/vecmap help
+./bin/vecmap help scan            # 单条命令的完整参数说明
+./bin/vecmap scan --help          # 等价用法
+./bin/vecmap --version            # 或 vecmap version
 
-# 版本
-./bin/vecmap version
+# 手册页（roff，可管道给 man）
+./bin/vecmap man | man -l -
+make manpage                      # 同步 docs/vecmap.1，可安装到 /usr/share/man/man1/
+
+# Shell 补全
+source <(./bin/vecmap completion bash)   # bash
+./bin/vecmap completion zsh > _vecmap    # zsh
 
 # 标准扫描（指纹、只读探测、CVE 关联）
 ./bin/vecmap scan --authorize \
@@ -66,6 +74,21 @@ go build -o bin/vecmap ./cmd/vecmap
 # 公告目录
 ./bin/vecmap advisories
 ```
+
+### 退出码与环境变量
+
+| 退出码 | 含义 |
+|---|---|
+| 0 | 成功 |
+| 1 | 运行期错误（网络、数据库、适配器） |
+| 2 | 用法错误（未知命令、缺少必填参数、缺少 `--authorize`） |
+
+| 环境变量 | 作用 |
+|---|---|
+| `VECMAP_DB` | 默认数据库路径（覆盖 `~/.vecmap/vecmap.db`） |
+| `VECMAP_LANG` | 默认界面语言（`en`/`zh`） |
+| `NO_COLOR` | 关闭彩色输出 |
+| `HTTP_PROXY` / `HTTPS_PROXY` | 未指定 `--proxy` 时由 HTTP 客户端使用 |
 
 ### 目标格式
 

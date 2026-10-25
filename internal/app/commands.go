@@ -3,6 +3,7 @@ package app
 import (
 	"flag"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -10,9 +11,29 @@ import (
 	"vecmap/internal/model"
 )
 
+// UsageError 表示命令行参数使用错误。
+//
+// 使用错误应以退出码 2 退出，并在 stderr 提示用法。
+type UsageError struct {
+	Message string
+}
+
+// Error 返回使用错误文本。
+func (e *UsageError) Error() string {
+	return e.Message
+}
+
+// Usagef 构造使用错误。
+//
+// 参数 format 与 args 遵循 fmt.Sprintf 规则。
+func Usagef(format string, args ...any) error {
+	return &UsageError{Message: fmt.Sprintf(format, args...)}
+}
+
 // Command 表示一条解析完成的命令行指令。
 type Command struct {
 	Action         string
+	HelpTopic      string
 	Targets        []string
 	Name           string
 	Mode           string
@@ -49,6 +70,7 @@ type Command struct {
 	Output         string
 	Format         string
 	SessionID      string
+	Shell          string
 	Verbose        bool
 	DryRun         bool
 	Authorized     bool
@@ -58,13 +80,23 @@ type Command struct {
 // ParseArgs 解析命令行参数。
 //
 // 参数 args 为 os.Args[1:]。
-// 返回命令实例；参数非法或缺少命令时返回错误。
+// 返回命令实例；参数非法或缺少命令时返回 UsageError。
 func ParseArgs(args []string) (*Command, error) {
 	if len(args) == 0 {
-		return nil, fmt.Errorf("no command supplied")
+		return nil, Usagef("no command supplied; run 'vecmap help' for usage")
 	}
-	command := &Command{Action: args[0], Language: "en", Timeout: 8 * time.Second, Concurrency: 8}
+	command := &Command{
+		Action:      args[0],
+		Language:    envOr("VECMAP_LANG", "en"),
+		DBPath:      os.Getenv("VECMAP_DB"),
+		Timeout:     8 * time.Second,
+		Concurrency: 8,
+	}
 	switch command.Action {
+	case "--version", "-V":
+		command.Action = "version"
+	case "--help", "-h":
+		command.Action = "help"
 	case "scan":
 		parseScanFlags(command, args[1:])
 	case "discover":
@@ -83,13 +115,20 @@ func ParseArgs(args []string) (*Command, error) {
 		parseDeleteFlags(command, args[1:])
 	case "version":
 		parseGlobalFlags(command, args[1:])
-	case "help", "--help", "-h":
-		command.Action = "help"
+	case "help":
+		command.HelpTopic = firstArg(args[1:])
+	case "man":
 		parseGlobalFlags(command, args[1:])
+	case "completion":
+		command.Shell = firstArg(args[1:])
+		if command.Shell == "" {
+			return nil, Usagef("completion requires bash or zsh")
+		}
 	default:
-		return nil, fmt.Errorf("unknown command: %s", command.Action)
+		return nil, Usagef("unknown command %q; run 'vecmap help' for usage", command.Action)
 	}
 	if command.Help && command.Action != "help" {
+		command.HelpTopic = command.Action
 		command.Action = "help"
 	}
 	return command, nil
@@ -164,8 +203,8 @@ func (c *Command) BuildReportOptions() model.ReportOptions {
 
 func parseGlobalFlags(command *Command, args []string) {
 	set := flag.NewFlagSet("vecmap", flag.ContinueOnError)
-	set.StringVar(&command.DBPath, "db", "", "database path (default ~/.vecmap/vecmap.db)")
-	set.StringVar(&command.Language, "lang", "en", "language")
+	set.StringVar(&command.DBPath, "db", command.DBPath, "database path (default ~/.vecmap/vecmap.db)")
+	set.StringVar(&command.Language, "lang", command.Language, "language (en|zh)")
 	set.BoolVar(&command.Verbose, "verbose", false, "verbose output")
 	set.BoolVar(&command.Help, "help", false, "show help")
 	set.BoolVar(&command.Help, "h", false, "show help")
@@ -174,8 +213,8 @@ func parseGlobalFlags(command *Command, args []string) {
 
 func parseScanFlags(command *Command, args []string) {
 	set := flag.NewFlagSet("scan", flag.ContinueOnError)
-	set.StringVar(&command.DBPath, "db", "", "database path (default ~/.vecmap/vecmap.db)")
-	set.StringVar(&command.Language, "lang", "en", "language")
+	set.StringVar(&command.DBPath, "db", command.DBPath, "database path (default ~/.vecmap/vecmap.db)")
+	set.StringVar(&command.Language, "lang", command.Language, "language (en|zh)")
 	set.BoolVar(&command.Verbose, "verbose", false, "verbose output")
 	set.BoolVar(&command.Help, "help", false, "show help")
 	set.StringVar(&command.Name, "name", "", "session name")
@@ -219,8 +258,8 @@ func parseScanFlags(command *Command, args []string) {
 
 func parseDiscoverFlags(command *Command, args []string) {
 	set := flag.NewFlagSet("discover", flag.ContinueOnError)
-	set.StringVar(&command.DBPath, "db", "", "database path (default ~/.vecmap/vecmap.db)")
-	set.StringVar(&command.Language, "lang", "en", "language")
+	set.StringVar(&command.DBPath, "db", command.DBPath, "database path (default ~/.vecmap/vecmap.db)")
+	set.StringVar(&command.Language, "lang", command.Language, "language (en|zh)")
 	set.BoolVar(&command.Verbose, "verbose", false, "verbose output")
 	set.BoolVar(&command.Help, "help", false, "show help")
 	set.StringVar(&command.Name, "name", "", "session name")
@@ -240,8 +279,8 @@ func parseDiscoverFlags(command *Command, args []string) {
 
 func parseSessionsFlags(command *Command, args []string) {
 	set := flag.NewFlagSet("sessions", flag.ContinueOnError)
-	set.StringVar(&command.DBPath, "db", "", "database path (default ~/.vecmap/vecmap.db)")
-	set.StringVar(&command.Language, "lang", "en", "language")
+	set.StringVar(&command.DBPath, "db", command.DBPath, "database path (default ~/.vecmap/vecmap.db)")
+	set.StringVar(&command.Language, "lang", command.Language, "language (en|zh)")
 	set.BoolVar(&command.Verbose, "verbose", false, "verbose output")
 	set.BoolVar(&command.Help, "help", false, "show help")
 	_ = set.Parse(args)
@@ -249,8 +288,8 @@ func parseSessionsFlags(command *Command, args []string) {
 
 func parseReportFlags(command *Command, args []string) {
 	set := flag.NewFlagSet("report", flag.ContinueOnError)
-	set.StringVar(&command.DBPath, "db", "", "database path (default ~/.vecmap/vecmap.db)")
-	set.StringVar(&command.Language, "lang", "en", "language")
+	set.StringVar(&command.DBPath, "db", command.DBPath, "database path (default ~/.vecmap/vecmap.db)")
+	set.StringVar(&command.Language, "lang", command.Language, "language (en|zh)")
 	set.BoolVar(&command.Verbose, "verbose", false, "verbose output")
 	set.BoolVar(&command.Help, "help", false, "show help")
 	set.StringVar(&command.SessionID, "session", "", "session ID")
@@ -261,8 +300,8 @@ func parseReportFlags(command *Command, args []string) {
 
 func parseDeleteFlags(command *Command, args []string) {
 	set := flag.NewFlagSet("delete", flag.ContinueOnError)
-	set.StringVar(&command.DBPath, "db", "", "database path (default ~/.vecmap/vecmap.db)")
-	set.StringVar(&command.Language, "lang", "en", "language")
+	set.StringVar(&command.DBPath, "db", command.DBPath, "database path (default ~/.vecmap/vecmap.db)")
+	set.StringVar(&command.Language, "lang", command.Language, "language (en|zh)")
 	set.BoolVar(&command.Verbose, "verbose", false, "verbose output")
 	set.BoolVar(&command.Help, "help", false, "show help")
 	set.StringVar(&command.SessionID, "session", "", "session ID")
@@ -305,6 +344,30 @@ func parseTimeout(value string) time.Duration {
 		return 8 * time.Second
 	}
 	return duration
+}
+
+// envOr 返回环境变量值或默认值。
+//
+// 参数 key 为环境变量名，fallback 为默认值。
+func envOr(key, fallback string) string {
+	if value := strings.TrimSpace(os.Getenv(key)); value != "" {
+		return value
+	}
+	return fallback
+}
+
+// firstArg 返回参数列表中首个非标志参数。
+//
+// 参数 args 为子命令参数列表；用于 help/completion 的主题定位。
+func firstArg(args []string) string {
+	for _, arg := range args {
+		arg = strings.TrimSpace(arg)
+		if arg == "" || strings.HasPrefix(arg, "-") {
+			continue
+		}
+		return strings.ToLower(arg)
+	}
+	return ""
 }
 
 func parseHeaders(values []string) map[string]string {

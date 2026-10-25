@@ -3,7 +3,6 @@ package app
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"vecmap/internal/constant"
@@ -473,62 +472,4 @@ func (a *App) Advisories() []model.Advisory {
 // 返回工具名、版本与定位说明。
 func (a *App) Version() string {
 	return fmt.Sprintf("%s %s — %s", constant.Name, constant.Version, constant.Tagline)
-}
-
-// Usage 返回命令行帮助文本。
-//
-// 返回包含全部子命令与常用参数的说明。
-func (a *App) Usage() string {
-	var output strings.Builder
-	output.WriteString(fmt.Sprintf("%s %s — %s\n\n", constant.Name, constant.Version, constant.Tagline))
-	if a.language == "zh" {
-		output.WriteString("用法: vecmap <命令> [参数]\n\n")
-		output.WriteString("命令:\n")
-		output.WriteString("  scan       目标扫描（指纹、探测、CVE 关联；--mode deep 提取数据）\n")
-		output.WriteString("  discover   主机/网段端口发现\n")
-		output.WriteString("  dump       深度枚举与记录提取\n")
-		output.WriteString("  sessions   列出本地会话\n")
-		output.WriteString("  report     导出会话报告（markdown/json/html）\n")
-		output.WriteString("  advisories 列出内置漏洞公告目录\n")
-		output.WriteString("  delete     删除会话\n")
-		output.WriteString("  version    显示版本\n")
-		output.WriteString("\n常用参数:\n")
-		output.WriteString("  --authorize          确认已获得目标授权（必填）\n")
-		output.WriteString("  --mode standard|deep 扫描模式\n")
-		output.WriteString("  --ports 6333,6334    端口列表\n")
-		output.WriteString("  --extract            提取记录与向量\n")
-		output.WriteString("  --vectors            包含向量采样\n")
-		output.WriteString("  --max-records N      记录上限\n")
-		output.WriteString("  --scope-cidr 10.0.0.0/24   授权网段（可重复）\n")
-		output.WriteString("  --exclude-domain x.com      排除域名（可重复）\n")
-		output.WriteString("  --api-key KEY        认证 API Key\n")
-		output.WriteString("  --user / --pass      基础认证\n")
-		output.WriteString("  --db ~/.vecmap/vecmap.db   本地数据库路径（默认在用户主目录）\n")
-		output.WriteString("  --lang en|zh         界面语言\n")
-	} else {
-		output.WriteString("Usage: vecmap <command> [options]\n\n")
-		output.WriteString("Commands:\n")
-		output.WriteString("  scan       Target scan (fingerprint, probes, CVE correlation; --mode deep extracts data)\n")
-		output.WriteString("  discover   Host/CIDR port discovery\n")
-		output.WriteString("  dump       Deep enumeration and record extraction\n")
-		output.WriteString("  sessions   List local sessions\n")
-		output.WriteString("  report     Export a session report (markdown/json/html)\n")
-		output.WriteString("  advisories List the built-in advisory catalog\n")
-		output.WriteString("  delete     Delete a session\n")
-		output.WriteString("  version    Show version\n")
-		output.WriteString("\nCommon options:\n")
-		output.WriteString("  --authorize          Confirm you are authorized to test (required)\n")
-		output.WriteString("  --mode standard|deep Scan mode\n")
-		output.WriteString("  --ports 6333,6334    Port list\n")
-		output.WriteString("  --extract            Extract records and vectors\n")
-		output.WriteString("  --vectors            Include vector samples\n")
-		output.WriteString("  --max-records N      Record limit\n")
-		output.WriteString("  --scope-cidr 10.0.0.0/24   Authorized CIDR (repeatable)\n")
-		output.WriteString("  --exclude-domain x.com      Excluded domain (repeatable)\n")
-		output.WriteString("  --api-key KEY        Auth API key\n")
-		output.WriteString("  --user / --pass      Basic auth\n")
-		output.WriteString("  --db ~/.vecmap/vecmap.db   Local database path (default in the user's home directory)\n")
-		output.WriteString("  --lang en|zh         UI language\n")
-	}
-	return output.String()
 }
