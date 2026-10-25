@@ -234,11 +234,11 @@ func printScanSummary(application *app.App, result *model.ScanResult) {
 	language := application.Language()
 	fmt.Println()
 	for _, target := range result.Targets {
-		vendor := target.Vendor
-		if vendor == model.VendorUnknown {
-			vendor = "?"
+		vendor := model.VendorUnknown
+		if target.Vendor != model.VendorUnknown {
+			vendor = target.Vendor
 		}
-		fmt.Printf("  %-40s %-14s %-24s %s\n", target.BaseURL(), vendor, utilities.Truncate(target.Product, 24), target.Version)
+		fmt.Printf("  %-40s %-20s %-24s %s\n", target.BaseURL(), vendor.DisplayNameIn(language), utilities.Truncate(target.Product, 24), target.Version)
 	}
 	fmt.Println()
 	if len(result.Findings) == 0 {

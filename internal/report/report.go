@@ -235,12 +235,7 @@ func (b *Builder) remediation(finding *model.Finding) string {
 }
 
 func (b *Builder) severityLabel(severity model.Severity) string {
-	key := "report.severity." + string(severity)
-	label := b.t(key)
-	if label == key {
-		return string(severity)
-	}
-	return label
+	return severity.Label(b.Language)
 }
 
 func renderJSON(report *model.Report) (string, error) {
@@ -290,7 +285,7 @@ func (b *Builder) renderMarkdown(report *model.Report) string {
 			if finding.CVSSScore > 0 {
 				output.WriteString(fmt.Sprintf("- **CVSS:** %.1f\n", finding.CVSSScore))
 			}
-			output.WriteString(fmt.Sprintf("- **%s:** %s\n", b.t("report.confidence"), finding.Confidence))
+			output.WriteString(fmt.Sprintf("- **%s:** %s\n", b.t("report.confidence"), finding.Confidence.Label(b.Language)))
 			description := b.description(finding)
 			if description != "" {
 				output.WriteString("\n" + markdownEscape(description) + "\n")
@@ -331,7 +326,7 @@ func (b *Builder) renderMarkdown(report *model.Report) string {
 			auth = "yes"
 		}
 		output.WriteString(fmt.Sprintf("| %s | %s | %s | %s | %s | %s |\n",
-			markdownEscape(target.BaseURL()), target.Vendor, markdownEscape(target.Product), markdownEscape(target.Version), auth, markdownEscape(target.Transport)))
+			markdownEscape(target.BaseURL()), target.Vendor.DisplayNameIn(b.Language), markdownEscape(target.Product), markdownEscape(target.Version), auth, markdownEscape(target.Transport)))
 	}
 	output.WriteString("\n")
 
@@ -440,7 +435,7 @@ func (b *Builder) renderHTML(report *model.Report) string {
 	} else {
 		for _, finding := range report.Findings {
 			severityClass := "sev-" + string(finding.Severity)
-			body.WriteString("<h3>" + template.HTMLEscapeString(b.title(finding)) + " <span class=\"" + severityClass + "\">" + template.HTMLEscapeString(string(finding.Severity)) + "</span></h3>")
+			body.WriteString("<h3>" + template.HTMLEscapeString(b.title(finding)) + " <span class=\"" + severityClass + "\">" + template.HTMLEscapeString(finding.Severity.Label(b.Language)) + "</span></h3>")
 			body.WriteString("<p>" + template.HTMLEscapeString(b.description(finding)) + "</p>")
 			if impact := b.impact(finding); impact != "" {
 				body.WriteString("<p><strong>" + template.HTMLEscapeString(b.t("report.impact")) + ":</strong> " + template.HTMLEscapeString(impact) + "</p>")
@@ -457,7 +452,7 @@ func (b *Builder) renderHTML(report *model.Report) string {
 	body.WriteString("<h2>" + template.HTMLEscapeString(b.t("report.targets")) + "</h2>")
 	body.WriteString("<table><tr><th>" + template.HTMLEscapeString(b.t("report.field.target")) + "</th><th>" + template.HTMLEscapeString(b.t("report.field.vendor")) + "</th><th>" + template.HTMLEscapeString(b.t("report.field.product")) + "</th><th>" + template.HTMLEscapeString(b.t("report.field.version")) + "</th></tr>")
 	for _, target := range report.Targets {
-		body.WriteString("<tr><td>" + template.HTMLEscapeString(target.BaseURL()) + "</td><td>" + template.HTMLEscapeString(string(target.Vendor)) + "</td><td>" + template.HTMLEscapeString(target.Product) + "</td><td>" + template.HTMLEscapeString(target.Version) + "</td></tr>")
+		body.WriteString("<tr><td>" + template.HTMLEscapeString(target.BaseURL()) + "</td><td>" + template.HTMLEscapeString(target.Vendor.DisplayNameIn(b.Language)) + "</td><td>" + template.HTMLEscapeString(target.Product) + "</td><td>" + template.HTMLEscapeString(target.Version) + "</td></tr>")
 	}
 	body.WriteString("</table>")
 

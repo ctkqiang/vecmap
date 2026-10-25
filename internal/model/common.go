@@ -47,6 +47,28 @@ func (s Severity) Valid() bool {
 	return s.Rank() > 0
 }
 
+// Label 返回按语言本地化的风险等级文本。
+//
+// 参数 language 为 en 或 zh；zh 返回 严重/高危/中危/低危/信息。
+// 未知等级返回原始字符串。
+func (s Severity) Label(language string) string {
+	if language == "zh" {
+		switch s {
+		case SeverityCritical:
+			return "严重"
+		case SeverityHigh:
+			return "高危"
+		case SeverityMedium:
+			return "中危"
+		case SeverityLow:
+			return "低危"
+		case SeverityInfo:
+			return "信息"
+		}
+	}
+	return string(s)
+}
+
 // ParseSeverity 将外部文本转换为标准风险等级。
 //
 // 参数 raw 为大小写不敏感的等级文本。
@@ -113,6 +135,24 @@ func (c Confidence) Rank() int {
 	}
 }
 
+// Label 返回按语言本地化的可信度文本。
+//
+// 参数 language 为 en 或 zh；zh 返回 高/中/低。
+// 未知可信度返回原始字符串。
+func (c Confidence) Label(language string) string {
+	if language == "zh" {
+		switch c {
+		case ConfidenceHigh:
+			return "高"
+		case ConfidenceMedium:
+			return "中"
+		case ConfidenceLow:
+			return "低"
+		}
+	}
+	return string(c)
+}
+
 // Protocol 表示目标暴露的传输协议。
 type Protocol string
 
@@ -167,8 +207,47 @@ const (
 
 // DisplayName 返回适合报告展示的厂商名称。
 //
-// 返回稳定的产品名称；未知厂商返回 unknown。
+// 返回稳定的英文产品名称；未知厂商返回 Unknown。
+// 需要本地化文本时请使用 DisplayNameIn。
 func (v Vendor) DisplayName() string {
+	return v.DisplayNameIn("en")
+}
+
+// DisplayNameIn 返回按语言本地化的厂商名称。
+//
+// 参数 language 为 en 或 zh；品牌名保持原文，仅描述性部分本地化。
+// 未知厂商英文返回 Unknown，中文返回 未知。
+func (v Vendor) DisplayNameIn(language string) string {
+	if language == "zh" {
+		switch v {
+		case VendorQdrant:
+			return "Qdrant"
+		case VendorMilvus:
+			return "Milvus"
+		case VendorWeaviate:
+			return "Weaviate"
+		case VendorChroma:
+			return "Chroma"
+		case VendorRedis:
+			return "Redis / RediSearch"
+		case VendorElasticsearch:
+			return "Elasticsearch"
+		case VendorOpenSearch:
+			return "OpenSearch"
+		case VendorPgVector:
+			return "PostgreSQL pgvector 扩展"
+		case VendorTypesense:
+			return "Typesense"
+		case VendorPinecone:
+			return "Pinecone"
+		case VendorVespa:
+			return "Vespa"
+		case VendorApache:
+			return "Apache"
+		default:
+			return "未知"
+		}
+	}
 	switch v {
 	case VendorQdrant:
 		return "Qdrant"
