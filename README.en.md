@@ -310,3 +310,26 @@ scripts/                 advisory snapshot refresh script
 vecmap is for **authorized security assessments only**. You must obtain written
 permission for the target assets and are responsible for your own actions. The
 tool contains no exploits, no denial-of-service, and no destructive functionality.
+
+---
+
+<div align="center">
+
+<h2>支持</h2>
+
+<p>如果您觉得本项目对您有帮助，欢迎请我喝杯咖啡</p>
+<p><sub>您的支持是我持续维护和改进的动力</sub></p>
+
+<br/>
+
+<strong>微信扫码捐赠</strong><br/><br/>
+<img src="https://raw.gitcode.com/ctkqiang_sr/ctkqiang_sr/raw/main/mm_reward_qrcode_1778988737577.png"
+     alt="微信扫码捐赠"
+     width="240"
+     style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
+
+<br/>
+<br/>
+</div>
+
+---

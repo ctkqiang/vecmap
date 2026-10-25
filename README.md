@@ -294,3 +294,26 @@ scripts/                 公告快照刷新脚本
 
 vecmap 仅用于**已获授权的安全评估**。使用者必须取得目标资产的书面授权并对自身
 行为负责。工具不包含任何漏洞利用、拒绝服务或数据破坏功能。
+
+---
+
+<div align="center">
+
+<h2>支持</h2>
+
+<p>如果您觉得本项目对您有帮助，欢迎请我喝杯咖啡</p>
+<p><sub>您的支持是我持续维护和改进的动力</sub></p>
+
+<br/>
+
+<strong>微信扫码捐赠</strong><br/><br/>
+<img src="https://raw.gitcode.com/ctkqiang_sr/ctkqiang_sr/raw/main/mm_reward_qrcode_1778988737577.png"
+     alt="微信扫码捐赠"
+     width="240"
+     style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
+
+<br/>
+<br/>
+</div>
+
+---
