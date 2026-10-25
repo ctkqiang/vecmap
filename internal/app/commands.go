@@ -75,6 +75,7 @@ type Command struct {
 	DryRun         bool
 	Authorized     bool
 	Help           bool
+	UsageFlag      bool
 }
 
 // ParseArgs 解析命令行参数。
@@ -97,6 +98,9 @@ func ParseArgs(args []string) (*Command, error) {
 		command.Action = "version"
 	case "--help", "-h":
 		command.Action = "help"
+	case "--usage":
+		command.Action = "help"
+		command.UsageFlag = true
 	case "scan":
 		parseScanFlags(command, args[1:])
 	case "discover":
@@ -207,6 +211,7 @@ func parseGlobalFlags(command *Command, args []string) {
 	set.StringVar(&command.Language, "lang", command.Language, "language (en|zh)")
 	set.BoolVar(&command.Verbose, "verbose", false, "verbose output")
 	set.BoolVar(&command.Help, "help", false, "show help")
+	set.BoolVar(&command.UsageFlag, "usage", false, "print synopsis only")
 	set.BoolVar(&command.Help, "h", false, "show help")
 	_ = set.Parse(args)
 }
@@ -217,6 +222,7 @@ func parseScanFlags(command *Command, args []string) {
 	set.StringVar(&command.Language, "lang", command.Language, "language (en|zh)")
 	set.BoolVar(&command.Verbose, "verbose", false, "verbose output")
 	set.BoolVar(&command.Help, "help", false, "show help")
+	set.BoolVar(&command.UsageFlag, "usage", false, "print synopsis only")
 	set.StringVar(&command.Name, "name", "", "session name")
 	set.StringVar(&command.Mode, "mode", "standard", "scan mode")
 	set.StringVar(&command.TimeoutText, "timeout", "8s", "request timeout")
@@ -262,6 +268,7 @@ func parseDiscoverFlags(command *Command, args []string) {
 	set.StringVar(&command.Language, "lang", command.Language, "language (en|zh)")
 	set.BoolVar(&command.Verbose, "verbose", false, "verbose output")
 	set.BoolVar(&command.Help, "help", false, "show help")
+	set.BoolVar(&command.UsageFlag, "usage", false, "print synopsis only")
 	set.StringVar(&command.Name, "name", "", "session name")
 	set.StringVar(&command.TimeoutText, "timeout", "5s", "probe timeout")
 	set.IntVar(&command.Concurrency, "concurrency", 64, "concurrency")
@@ -283,6 +290,7 @@ func parseSessionsFlags(command *Command, args []string) {
 	set.StringVar(&command.Language, "lang", command.Language, "language (en|zh)")
 	set.BoolVar(&command.Verbose, "verbose", false, "verbose output")
 	set.BoolVar(&command.Help, "help", false, "show help")
+	set.BoolVar(&command.UsageFlag, "usage", false, "print synopsis only")
 	_ = set.Parse(args)
 }
 
@@ -292,6 +300,7 @@ func parseReportFlags(command *Command, args []string) {
 	set.StringVar(&command.Language, "lang", command.Language, "language (en|zh)")
 	set.BoolVar(&command.Verbose, "verbose", false, "verbose output")
 	set.BoolVar(&command.Help, "help", false, "show help")
+	set.BoolVar(&command.UsageFlag, "usage", false, "print synopsis only")
 	set.StringVar(&command.SessionID, "session", "", "session ID")
 	set.StringVar(&command.Format, "format", "markdown", "markdown|json|html")
 	set.StringVar(&command.Output, "output", "", "output file")
@@ -304,6 +313,7 @@ func parseDeleteFlags(command *Command, args []string) {
 	set.StringVar(&command.Language, "lang", command.Language, "language (en|zh)")
 	set.BoolVar(&command.Verbose, "verbose", false, "verbose output")
 	set.BoolVar(&command.Help, "help", false, "show help")
+	set.BoolVar(&command.UsageFlag, "usage", false, "print synopsis only")
 	set.StringVar(&command.SessionID, "session", "", "session ID")
 	_ = set.Parse(args)
 }

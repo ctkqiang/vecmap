@@ -16,12 +16,28 @@ func main() {
 	if err := run(os.Args[1:]); err != nil {
 		var usageError *app.UsageError
 		if errors.As(err, &usageError) {
-			fmt.Fprintf(os.Stderr, "vecmap: %s\n\nRun 'vecmap help' for usage.\n", usageError.Message)
+			fmt.Fprintf(os.Stderr, "vecmap: %s\n\n", usageError.Message)
+			printUsageHint(os.Args[1:])
 			os.Exit(2)
 		}
 		fmt.Fprintf(os.Stderr, "vecmap: %s\n", err)
 		os.Exit(1)
 	}
+}
+
+// printUsageHint 在使用错误时向 stderr 输出对应命令的用法行。
+//
+// 参数 args 为原始命令行参数；无法定位命令时输出总览用法。
+func printUsageHint(args []string) {
+	action := "help"
+	if len(args) > 0 {
+		action = strings.ToLower(args[0])
+	}
+	lite, err := app.NewLite(app.Config{Language: "en"})
+	if err != nil {
+		return
+	}
+	fmt.Fprintf(os.Stderr, "%s\nRun 'vecmap help %s' for full usage.\n", lite.UsageSynopsis(action), action)
 }
 
 // run 执行解析后的命令。
@@ -31,6 +47,18 @@ func run(args []string) error {
 	command, err := app.ParseArgs(args)
 	if err != nil {
 		return err
+	}
+	if command.UsageFlag {
+		lite, liteErr := app.NewLite(app.Config{Language: command.Language})
+		if liteErr != nil {
+			return liteErr
+		}
+		topic := command.HelpTopic
+		if topic == "" && command.Action != "help" {
+			topic = command.Action
+		}
+		fmt.Print(lite.UsageSynopsis(topic))
+		return nil
 	}
 	if command.Action == "version" || command.Action == "help" || command.Action == "advisories" || command.Action == "man" || command.Action == "completion" {
 		return runLite(command)
@@ -99,6 +127,7 @@ func runScan(application *app.App, command *app.Command) error {
 	if len(command.Targets) == 0 {
 		return app.Usagef("no targets supplied; run 'vecmap help %s' for usage", command.Action)
 	}
+	fmt.Println(application.Banner())
 	result, err := application.RunScan(command.BuildScanRequest())
 	if err != nil {
 		return err
@@ -114,6 +143,7 @@ func runDiscover(application *app.App, command *app.Command) error {
 	if len(command.Targets) == 0 {
 		return app.Usagef("no hosts supplied; run 'vecmap help discover' for usage")
 	}
+	fmt.Println(application.Banner())
 	_, err := application.RunDiscover(command.BuildScanRequest())
 	return err
 }
@@ -129,7 +159,9 @@ func runSessions(application *app.App) error {
 	}
 	fmt.Printf("%-24s  %-10s  %-20s  %s\n", "ID", "MODE", "STATUS", "STARTED")
 	for _, session := range sessions {
-		fmt.Printf("%-24s  %-10s  %-20s  %s\n", session.ID, session.Mode, session.Status, session.StartedAt.Local().Format("2006-01-02 15:04:05"))
+		fmt.Printf("%-24s  %-10s  %-20s  %s\n", session.ID, session.Mode,
+			app.StatusStyle(session.Status, session.Status),
+			session.StartedAt.Local().Format("2006-01-02 15:04:05"))
 	}
 	return nil
 }
@@ -166,7 +198,9 @@ func runAdvisories(application *app.App, command *app.Command) error {
 			title = advisory.TitleZH
 		}
 		fmt.Printf("%-18s  %-12s  %-10s  %-10s  %-34s  %s\n",
-			advisory.ID, advisory.Vendor, advisory.Severity, matchable, utilities.Truncate(affected, 34), utilities.Truncate(title, 60))
+			advisory.ID, advisory.Vendor,
+			app.SeverityStyle(advisory.Severity, string(advisory.Severity)),
+			matchable, utilities.Truncate(affected, 34), utilities.Truncate(title, 60))
 	}
 	return nil
 }
@@ -205,11 +239,15 @@ func printScanSummary(application *app.App, result *model.ScanResult) {
 			if language == "zh" && finding.TitleZH != "" {
 				title = finding.TitleZH
 			}
-			fmt.Printf("  [%s] %s (%s)\n", strings.ToUpper(string(finding.Severity)), title, finding.Category)
+			severityText := app.SeverityStyle(finding.Severity, "["+strings.ToUpper(string(finding.Severity))+"]")
+			fmt.Printf("  %-10s %s (%s)\n", severityText, title, finding.Category)
 		}
 	}
 	if session := result.Session; session != nil {
-		fmt.Printf("\n  session: %s\n", session.ID)
+		fmt.Printf("\n  session: %s   status: %s\n", session.ID, app.StatusStyle(session.Status, session.Status))
+	}
+	if len(result.Records) > 0 {
+		fmt.Printf("  extracted: %s\n", utilities.TfIn(language, "msg.records.extracted", len(result.Records), len(result.Collections)))
 	}
 	for _, message := range result.Errors {
 		fmt.Printf("  ! %s\n", message)

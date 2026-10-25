@@ -171,6 +171,63 @@ func TestCompletionScripts(t *testing.T) {
 	}
 }
 
+func TestParseArgsUsageFlag(t *testing.T) {
+	command, err := app.ParseArgs([]string{"scan", "--usage"})
+	if err != nil {
+		t.Fatalf("ParseArgs: %v", err)
+	}
+	if command.Action != "scan" || !command.UsageFlag {
+		t.Fatalf("expected scan with usage flag, got %+v", command)
+	}
+	command, err = app.ParseArgs([]string{"--usage"})
+	if err != nil {
+		t.Fatalf("ParseArgs: %v", err)
+	}
+	if !command.UsageFlag {
+		t.Fatalf("expected top-level --usage to set usage flag")
+	}
+}
+
+func TestUsageSynopsis(t *testing.T) {
+	application, err := app.NewLite(app.Config{Language: "en"})
+	if err != nil {
+		t.Fatalf("NewLite: %v", err)
+	}
+	if got := application.UsageSynopsis("scan"); !strings.Contains(got, "vecmap scan [OPTIONS] TARGET...") {
+		t.Fatalf("unexpected scan synopsis: %q", got)
+	}
+	if got := application.UsageSynopsis(""); !strings.Contains(got, "vecmap <command> [options]") {
+		t.Fatalf("unexpected overview synopsis: %q", got)
+	}
+	if got := application.UsageSynopsis("nope"); !strings.Contains(got, "vecmap help") {
+		t.Fatalf("expected fallback synopsis, got %q", got)
+	}
+}
+
+func TestBanner(t *testing.T) {
+	application, err := app.NewLite(app.Config{Language: "en"})
+	if err != nil {
+		t.Fatalf("NewLite: %v", err)
+	}
+	banner := application.Banner()
+	if !strings.Contains(banner, "vecmap v1.0.0") {
+		t.Fatalf("expected version in banner, got: %s", banner)
+	}
+	if !strings.Contains(banner, "_____") {
+		t.Fatalf("expected ASCII art in banner")
+	}
+}
+
+func TestSeverityAndStatusStylesNoColor(t *testing.T) {
+	t.Setenv("NO_COLOR", "1")
+	if got := app.SeverityStyle("critical", "CRITICAL"); got != "CRITICAL" {
+		t.Fatalf("expected plain text under NO_COLOR, got %q", got)
+	}
+	if got := app.StatusStyle("completed", "completed"); got != "completed" {
+		t.Fatalf("expected plain text under NO_COLOR, got %q", got)
+	}
+}
+
 func isUsageError(err error) bool {
 	var usageError *app.UsageError
 	return errors.As(err, &usageError)

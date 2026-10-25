@@ -8,6 +8,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 
 	"vecmap/internal/constant"
+	"vecmap/internal/model"
 )
 
 // 帮助渲染样式（复用用户的 lipgloss 模块）。
@@ -149,6 +150,7 @@ var globalOptions = []optionDoc{
 	{Flag: "--lang en|zh", En: "UI and report language (default from VECMAP_LANG, else en)", Zh: "界面与报告语言（默认取 VECMAP_LANG，否则 en）"},
 	{Flag: "--verbose", En: "Verbose protocol logging", Zh: "输出底层协议调试日志"},
 	{Flag: "--help, -h", En: "Show help for the command", Zh: "显示该命令的帮助"},
+	{Flag: "--usage", En: "Print the command synopsis only", Zh: "仅输出命令语法"},
 }
 
 var scopeOptions = []optionDoc{
@@ -239,6 +241,78 @@ var reportExamples = []exampleDoc{
 	{En: "vecmap report --session ses_1234abcd --format html", Zh: "vecmap report --session ses_1234abcd --format html"},
 }
 
+// bannerText 是帮助与扫描启动时展示的 ASCII 艺术字。
+const bannerText = `__     __ _____ _____ __  __    _    ____  
+\ \   / // ____/ ____|  \/  |  / \  |  _ \ 
+ \ \ / /| |   | |    | |\/| | / _ \ | |_) |
+  \ V / | |___| |____| |  | |/ ___ \|  __/ 
+   \_/  |______\______|_|  |_/_/   \_\_|    `
+
+// Banner 返回带版本号的彩色 ASCII 横幅。
+//
+// 返回按终端能力渲染（或降级为纯文本）的横幅文本。
+func (a *App) Banner() string {
+	var output strings.Builder
+	for _, line := range strings.Split(bannerText, "\n") {
+		output.WriteString(paint(helpBanner, line) + "\n")
+	}
+	output.WriteString(paint(helpDim, fmt.Sprintf("%s v%s — %s", constant.Name, constant.Version, localized(a.language == "zh", constant.Tagline, "向量数据库攻击面评估框架"))))
+	return output.String()
+}
+
+// UsageSynopsis 返回命令的精简用法行。
+//
+// 参数 topic 为命令名；空字符串返回总览用法。
+// 用于 --usage 输出与使用错误提示。
+func (a *App) UsageSynopsis(topic string) string {
+	topic = strings.ToLower(strings.TrimSpace(topic))
+	if topic == "" {
+		return fmt.Sprintf("Usage: vecmap <command> [options]\n       vecmap <command> --help | --usage\n       vecmap man | completion bash|zsh\n")
+	}
+	if doc, exists := commandDocs[topic]; exists {
+		return fmt.Sprintf("Usage: %s\n", doc.Synopsis)
+	}
+	return fmt.Sprintf("Usage: vecmap help\n")
+}
+
+// SeverityStyle 返回风险等级对应的显示样式。
+//
+// 参数 severity 为风险等级；返回彩色样式，非 TTY 时输出纯文本。
+func SeverityStyle(severity model.Severity, text string) string {
+	var style lipgloss.Style
+	switch severity {
+	case model.SeverityCritical:
+		style = lipgloss.NewStyle().Foreground(lipgloss.Color("196")).Bold(true)
+	case model.SeverityHigh:
+		style = lipgloss.NewStyle().Foreground(lipgloss.Color("208")).Bold(true)
+	case model.SeverityMedium:
+		style = lipgloss.NewStyle().Foreground(lipgloss.Color("214"))
+	case model.SeverityLow:
+		style = lipgloss.NewStyle().Foreground(lipgloss.Color("46"))
+	default:
+		style = lipgloss.NewStyle().Foreground(lipgloss.Color("245"))
+	}
+	return paint(style, text)
+}
+
+// StatusStyle 返回会话状态对应的显示样式。
+//
+// 参数 status 为状态文本；completed 绿色、running 黄色、failed 红色。
+func StatusStyle(status, text string) string {
+	var style lipgloss.Style
+	switch strings.ToLower(status) {
+	case "completed":
+		style = lipgloss.NewStyle().Foreground(lipgloss.Color("46"))
+	case "running":
+		style = lipgloss.NewStyle().Foreground(lipgloss.Color("214"))
+	case "failed":
+		style = lipgloss.NewStyle().Foreground(lipgloss.Color("196")).Bold(true)
+	default:
+		style = lipgloss.NewStyle().Foreground(lipgloss.Color("245"))
+	}
+	return paint(style, text)
+}
+
 // colorsEnabled 判断终端是否支持彩色输出。
 //
 // 遵守 NO_COLOR 约定，TERM=dumb 时也禁用彩色。
@@ -263,6 +337,19 @@ func localized(zh bool, en, zhText string) string {
 	return en
 }
 
+// languageBanner 返回按语言渲染的 ASCII 横幅。
+//
+// 参数 language 为 en 或 zh。
+func languageBanner(language string) string {
+	zh := language == "zh"
+	var output strings.Builder
+	for _, line := range strings.Split(bannerText, "\n") {
+		output.WriteString(paint(helpBanner, line) + "\n")
+	}
+	output.WriteString(paint(helpDim, fmt.Sprintf("%s v%s — %s", constant.Name, constant.Version, localized(zh, constant.Tagline, "向量数据库攻击面评估框架"))))
+	return output.String()
+}
+
 // Help 渲染总帮助或单条命令的详细用法。
 //
 // 参数 topic 为命令名，空字符串渲染总览。
@@ -281,8 +368,7 @@ func (a *App) Help(topic string) string {
 func renderOverview(language string) string {
 	zh := language == "zh"
 	var output strings.Builder
-	output.WriteString(paint(helpBanner, fmt.Sprintf("%s %s", constant.Name, constant.Version)) + "\n")
-	output.WriteString(paint(helpTitle, localized(zh, constant.Tagline, "向量数据库攻击面评估框架")) + "\n\n")
+	output.WriteString(languageBanner(language) + "\n")
 	output.WriteString(paint(helpTitle, localized(zh, "USAGE", "用法")) + "\n")
 	output.WriteString("  vecmap <command> [options]\n")
 	output.WriteString("  vecmap <command> --help\n\n")

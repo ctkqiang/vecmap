@@ -39,10 +39,11 @@ go build -o bin/vecmap ./cmd/vecmap
 ## 使用
 
 ```bash
-# 帮助（彩色终端输出；NO_COLOR=1 关闭）
+# 帮助（ASCII banner + 彩色终端输出；NO_COLOR=1 关闭彩色）
 ./bin/vecmap help
 ./bin/vecmap help scan            # 单条命令的完整参数说明
 ./bin/vecmap scan --help          # 等价用法
+./bin/vecmap scan --usage         # 仅输出语法（或顶层 vecmap --usage）
 ./bin/vecmap --version            # 或 vecmap version
 
 # 手册页（roff，可管道给 man）
@@ -89,6 +90,14 @@ source <(./bin/vecmap completion bash)   # bash
 | `VECMAP_LANG` | 默认界面语言（`en`/`zh`） |
 | `NO_COLOR` | 关闭彩色输出 |
 | `HTTP_PROXY` / `HTTPS_PROXY` | 未指定 `--proxy` 时由 HTTP 客户端使用 |
+
+### 终端体验
+
+- 扫描启动时打印彩色 ASCII banner，风险发现按严重度着色
+  （严重=红、高危=橙、中危=黄、低危=绿），会话状态同样着色
+- `sessions` / `advisories` 表格列着色
+- 用法错误（退出码 2）会在 stderr 输出对应命令的 SYNOPSIS 提示
+- 全部彩色输出遵守 `NO_COLOR` 约定，管道/非 TTY 自动降级
 
 ### 目标格式
 
