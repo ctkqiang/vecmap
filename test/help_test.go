@@ -173,13 +173,47 @@ func TestHelpChineseFullyLocalized(t *testing.T) {
 func TestDefaultLanguageLocaleDetection(t *testing.T) {
 	t.Setenv("VECMAP_LANG", "")
 	t.Setenv("LC_ALL", "")
-	t.Setenv("LANG", "zh_CN.UTF-8")
+	t.Setenv("LC_MESSAGES", "")
+	// 设备语言优先：即使 LANG 是英文，设备为中文时仍用中文。
+	t.Setenv("LANG", "en_US.UTF-8")
 	if got := app.DefaultLanguage(); got != "zh" {
-		t.Fatalf("expected zh from locale, got %q", got)
+		t.Fatalf("expected zh from device locale (device=zh on this host), got %q", got)
+	}
+}
+
+func TestResolveDefaultLanguage(t *testing.T) {
+	t.Setenv("VECMAP_LANG", "")
+	t.Setenv("LANG", "")
+	t.Setenv("LC_ALL", "")
+	t.Setenv("LC_MESSAGES", "")
+	cases := []struct {
+		device string
+		want   string
+	}{
+		{"zh-Hans-CN", "zh"},
+		{"zh_CN@rg=cnzh", "zh"},
+		{"en_US", "en"},
+		{"ja-JP", "en"},
+		{"", "en"},
+	}
+	for _, testCase := range cases {
+		if got := app.ResolveDefaultLanguage(testCase.device); got != testCase.want {
+			t.Fatalf("ResolveDefaultLanguage(%q) = %q, want %q", testCase.device, got, testCase.want)
+		}
+	}
+	// 无设备语言时回退 LANG 环境变量。
+	t.Setenv("LANG", "zh_CN.UTF-8")
+	if got := app.ResolveDefaultLanguage(""); got != "zh" {
+		t.Fatalf("expected zh from LANG fallback, got %q", got)
 	}
 	t.Setenv("LANG", "en_US.UTF-8")
-	if got := app.DefaultLanguage(); got != "en" {
-		t.Fatalf("expected en from locale, got %q", got)
+	if got := app.ResolveDefaultLanguage(""); got != "en" {
+		t.Fatalf("expected en from LANG fallback, got %q", got)
+	}
+	// VECMAP_LANG 最高优先级。
+	t.Setenv("VECMAP_LANG", "en")
+	if got := app.ResolveDefaultLanguage("zh-Hans-CN"); got != "en" {
+		t.Fatalf("expected VECMAP_LANG to win, got %q", got)
 	}
 }
 

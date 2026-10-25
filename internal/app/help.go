@@ -149,7 +149,7 @@ var commandDocs = map[string]commandDoc{
 
 var globalOptions = []optionDoc{
 	{Flag: "--db PATH", En: "Local database path (default ~/.vecmap/vecmap.db)", Zh: "本地数据库路径（默认 ~/.vecmap/vecmap.db）"},
-	{Flag: "--lang en|zh", En: "UI and report language (default: VECMAP_LANG, then device locale, else en)", Zh: "界面与报告语言（默认：VECMAP_LANG，其次设备系统 locale，否则 en）"},
+	{Flag: "--lang en|zh", En: "UI and report language (default: device locale, else en)", Zh: "界面与报告语言（默认：设备系统语言，否则 en）"},
 	{Flag: "--verbose", En: "Verbose protocol logging", Zh: "输出底层协议调试日志"},
 	{Flag: "--help, -h", En: "Show help for the command", Zh: "显示该命令的帮助"},
 	{Flag: "--usage", En: "Print the command synopsis only", Zh: "仅输出命令语法"},
@@ -325,12 +325,26 @@ func StatusStyle(status, text string) string {
 
 // DefaultLanguage 根据环境检测默认界面语言。
 //
-// 优先级：VECMAP_LANG > LANG/LC_ALL/LC_MESSAGES（显式设置即生效）>
-// 设备系统语言（macOS AppleLanguages/AppleLocale，仅当 locale 变量全部为空）> en。
+// 优先级：VECMAP_LANG > 设备系统语言（macOS AppleLanguages/AppleLocale）>
+// LANG/LC_ALL/LC_MESSAGES（Linux 等平台，设备语言即 locale）> en。
 // 返回 en 或 zh。
 func DefaultLanguage() string {
+	return ResolveDefaultLanguage(deviceLocale())
+}
+
+// ResolveDefaultLanguage 依据设备语言解析默认界面语言。
+//
+// 参数 device 为设备首选语言文本；空字符串表示平台无设备语言概念。
+// 与 DefaultLanguage 分离以便在测试中注入设备语言。
+func ResolveDefaultLanguage(device string) string {
 	if value := strings.TrimSpace(os.Getenv("VECMAP_LANG")); value != "" {
 		if strings.HasPrefix(strings.ToLower(value), "zh") {
+			return "zh"
+		}
+		return "en"
+	}
+	if device != "" {
+		if strings.Contains(strings.ToLower(device), "zh") {
 			return "zh"
 		}
 		return "en"
@@ -344,9 +358,6 @@ func DefaultLanguage() string {
 			return "zh"
 		}
 		return "en"
-	}
-	if strings.Contains(strings.ToLower(deviceLocale()), "zh") {
-		return "zh"
 	}
 	return "en"
 }
