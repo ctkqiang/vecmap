@@ -272,7 +272,15 @@ func (a *App) UsageSynopsis(topic string) string {
 	if doc, exists := commandDocs[topic]; exists {
 		return fmt.Sprintf("Usage: %s\n", doc.Synopsis)
 	}
-	return fmt.Sprintf("Usage: vecmap help\n")
+	return fmt.Sprintf("Usage: vecmap <command> [options]\n       vecmap <command> --help | --usage\n")
+}
+
+// HasCommand 判断命令名是否受支持。
+//
+// 参数 name 为命令名；返回是否存在对应的帮助主题。
+func (a *App) HasCommand(name string) bool {
+	_, exists := commandDocs[strings.ToLower(strings.TrimSpace(name))]
+	return exists
 }
 
 // SeverityStyle 返回风险等级对应的显示样式。
