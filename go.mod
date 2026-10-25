@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	github.com/charmbracelet/lipgloss v1.1.0
-	github.com/jackc/pgx/v5 v5.7.0
+	github.com/jackc/pgx/v5 v5.9.2
 	golang.org/x/time v0.12.0
 	google.golang.org/grpc v1.80.0
 	google.golang.org/protobuf v1.36.12
@@ -29,7 +29,6 @@ require (
 	github.com/muesli/termenv v0.16.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
-	golang.org/x/crypto v0.54.0 // indirect
 	golang.org/x/net v0.57.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/text v0.40.0 // indirect
