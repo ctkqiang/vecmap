@@ -39,10 +39,12 @@ func printUsageHint(args []string) {
 		return
 	}
 	hintTopic := action
+	hint := utilities.TfIn(language, "cli.hint.full", action)
 	if !lite.HasCommand(action) {
-		hintTopic = "help"
+		hintTopic = ""
+		hint = utilities.TIn(language, "cli.hint.overview")
 	}
-	fmt.Fprintf(os.Stderr, "%s\n%s\n", lite.UsageSynopsis(hintTopic), utilities.TfIn(language, "cli.hint.full", hintTopic))
+	fmt.Fprintf(os.Stderr, "%s\n%s\n", lite.UsageSynopsis(hintTopic), hint)
 }
 
 // run 执行解析后的命令。

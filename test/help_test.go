@@ -283,8 +283,11 @@ func TestUsageSynopsis(t *testing.T) {
 	if got := application.UsageSynopsis(""); !strings.Contains(got, "vecmap <command> [options]") {
 		t.Fatalf("unexpected overview synopsis: %q", got)
 	}
-	if got := application.UsageSynopsis("nope"); !strings.Contains(got, "vecmap help") {
-		t.Fatalf("expected fallback synopsis, got %q", got)
+	if got := application.UsageSynopsis("nope"); !strings.Contains(got, "vecmap <command> [options]") {
+		t.Fatalf("expected overview fallback for unknown topic, got %q", got)
+	}
+	if !application.HasCommand("scan") || application.HasCommand("nope") {
+		t.Fatalf("unexpected HasCommand result")
 	}
 }
 
