@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"vecmap/internal/model"
-	"vecmap/internal/utilities"
+	"github.com/ctkqiang/vecmap/internal/model"
+	"github.com/ctkqiang/vecmap/internal/utilities"
 )
 
 // AnalysisInput 汇总构建风险发现所需的证据。

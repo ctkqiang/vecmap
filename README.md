@@ -41,39 +41,124 @@ SQLite（WAL），可离线复现与导出报告。
 
 ## 安装
 
+### go install 一键安装（无需 clone）
+
 ```bash
-# 要求 Go 1.27+，CGO 开启（SQLite 驱动）
-go build -o bin/vecmap ./cmd/vecmap
+go install github.com/ctkqiang/vecmap/cmd/vecmap@latest
+```
+
+二进制安装到 `$(go env GOPATH)/bin/vecmap`，请确保该目录在 `PATH` 中。
+要求 Go 1.27+ 且 CGO 开启（SQLite 驱动）。未发布 tag 时可先用 `@main`；
+推送 `v1.0.0` 之类的版本 tag 后 `@latest` 即可解析。
+
+### 源码构建
+
+```bash
+go build -o build/vecmap ./cmd/vecmap
 ```
 
 ## 快速开始
 
 ```bash
 # 帮助（中文设备自动输出中文；--lang=en 切英文）
-./bin/vecmap help
-./bin/vecmap help scan            # 单条命令完整参数
-./bin/vecmap scan --usage         # 仅语法
+./build/vecmap help
+./build/vecmap help scan            # 单条命令完整参数
+./build/vecmap scan --usage         # 仅语法
 
 # 标准扫描：指纹、只读探测、CVE 关联
-./bin/vecmap scan --authorize \
+./build/vecmap scan --authorize \
   --scope-cidr 10.0.0.0/24 \
   http://10.0.0.5:6333
 
 # 深度扫描：枚举集合 + 提取记录与向量
-./bin/vecmap dump --authorize --vectors --max-records 500 \
+./build/vecmap dump --authorize --vectors --max-records 500 \
   --scope-cidr 10.0.0.0/24 \
   http://10.0.0.5:6333
 
 # 端口发现
-./bin/vecmap discover --authorize --scope-cidr 10.0.0.0/24 10.0.0.0/24
+./build/vecmap discover --authorize --scope-cidr 10.0.0.0/24 10.0.0.0/24
 
 # 会话与报告
-./bin/vecmap sessions
-./bin/vecmap report --session <id> --format markdown --output report.md
+./build/vecmap sessions
+./build/vecmap report --session <id> --format markdown --output report.md
 
 # 手册页与补全
-./bin/vecmap man | man -l -
-source <(./bin/vecmap completion bash)
+./build/vecmap man | man -l -
+source <(./build/vecmap completion bash)
+```
+
+## 帮助输出示例
+
+`./build/vecmap help`（中文设备默认）输出：
+
+```
+__     __ _____ _____ __  __    _    ____  
+\ \   / // ____/ ____|  \/  |  / \  |  _ \ 
+ \ \ / /| |   | |    | |\/| | / _ \ | |_) |
+  \ V / | |___| |____| |  | |/ ___ \|  __/ 
+   \_/  |______\______|_|  |_/_/   \_\_|    
+vecmap v1.0.0 — 向量数据库攻击面评估框架
+用法
+  vecmap <command> [options]
+  vecmap <command> --help
+
+说明
+  vecmap 是一个本地运行、sqlmap 风格的攻击面评估框架，面向
+  向量数据库与检索基础设施（Qdrant、Milvus、Weaviate、Chroma、
+  Redis、Elasticsearch、OpenSearch、pgvector、Typesense、Pinecone、Vespa）。
+  所有探测严格只读，破坏性接口一律不执行。
+
+命令
+  scan 向量数据库攻击面扫描：产品指纹识别、只读暴露面探测、CVE/CNVD 关联与风险发现。使用 --mode deep（或 --extract）可枚举集合并提取记录。
+  discover 对主机或网段执行 TCP/HTTP/TLS/gRPC/RESP 并发端口发现，开放端口作为会话目标持久化。
+  dump 深度枚举与记录提取（等价于 --mode deep --extract）。可用 --collection、--namespace 限定范围。
+  sessions 列出本地持久化的会话，按时间倒序。
+  report 离线生成会话报告。未指定 --output 时输出到标准输出。
+  advisories 列出内置公告目录（数据来自内嵌的 GitHub Security Advisory 快照）。
+  delete 删除会话及其全部关联证据（级联删除）。
+  version 输出版本信息。
+  help 显示总帮助或某条命令的详细用法。
+  man 以 roff 格式输出手册页（可管道到 man -l -，或将 docs/vecmap.1 安装到系统）。
+  completion 输出 bash 或 zsh 的补全脚本。
+
+全局参数
+  --db PATH 本地数据库路径（默认 ~/.vecmap/vecmap.db）
+  --lang en|zh 界面与报告语言（默认：设备系统语言，否则 en）
+  --verbose 输出底层协议调试日志
+  --help, -h 显示该命令的帮助
+  --usage 仅输出命令语法
+
+示例
+  # 标准扫描单个 Qdrant 主机
+  vecmap scan --authorize --scope-cidr 10.0.0.0/24 http://10.0.0.5:6333
+  # 带认证的深度扫描与提取
+  vecmap scan --authorize --mode deep --api-key SECRET --vectors 10.0.0.5:6333
+  # 扫描 TLS Redis 端点
+  vecmap scan --authorize rediss://db.example.com:6380
+  # 扫描 PostgreSQL pgvector 数据库
+  vecmap scan --authorize --dsn 'postgres://user:pass@10.0.0.9:5432/vecdb' 10.0.0.9:5432
+
+目标格式
+  http://host:6333  https://host  redis://host:6379  postgres://user:pass@host/db  grpc://host:19530
+  10.0.0.5:6333    10.0.0.0/24（CIDR，配合 --ports 展开）
+
+退出码
+  0  成功    1  运行期错误    2  用法错误
+
+环境变量
+  VECMAP_DB     默认数据库路径（覆盖 ~/.vecmap/vecmap.db）
+  VECMAP_LANG   默认界面语言（en|zh）
+  NO_COLOR      关闭彩色输出
+  HTTP_PROXY / HTTPS_PROXY   未指定 --proxy 时生效
+
+文件
+  ~/.vecmap/vecmap.db   本地会话数据库（目录 0700、文件 0600）
+  <--output 路径>        会话报告（0600）
+
+授权声明：必须事先取得每个目标范围的书面授权
+并传入 --authorize。未授权扫描属于违法行为。
+
+使用 'vecmap help <命令>' 查看单条命令参数，'vecmap man' 输出手册页。
 ```
 
 ## 命令
@@ -178,12 +263,13 @@ postgres://user:pass@host/db   grpc://host:19530
 ## 开发
 
 ```bash
-make build    # 构建 bin/vecmap
-make test     # go test ./...（test/ 包）
-make vet      # go vet ./...
-make fmt      # gofmt -l .
-make manpage  # 同步 docs/vecmap.1、docs/vecmap.zh.1
+make build    # 构建 ./build/vecmap
+make inspect  # go vet ./...
+make clean    # 清理构建产物与本地会话数据库
+go test ./... # 运行测试套件（test/ 包）
 ```
+
+`make manpage` 将内嵌手册页同步到 `docs/vecmap.1`、`docs/vecmap.zh.1`，供系统级安装。
 
 ## 项目结构
 

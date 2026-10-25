@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"vecmap/internal/model"
-	"vecmap/internal/report"
-	"vecmap/internal/utilities"
+	"github.com/ctkqiang/vecmap/internal/model"
+	"github.com/ctkqiang/vecmap/internal/report"
+	"github.com/ctkqiang/vecmap/internal/utilities"
 )
 
 func TestBuilderBuildAndRenderMarkdown(t *testing.T) {

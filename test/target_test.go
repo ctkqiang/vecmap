@@ -3,7 +3,7 @@ package test
 import (
 	"testing"
 
-	"vecmap/internal/engine"
+	"github.com/ctkqiang/vecmap/internal/engine"
 )
 
 func TestParseTargetURL(t *testing.T) {

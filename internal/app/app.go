@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"time"
 
-	"vecmap/internal/constant"
-	"vecmap/internal/database"
-	"vecmap/internal/engine"
-	"vecmap/internal/engine/vendors"
-	"vecmap/internal/logger"
-	"vecmap/internal/model"
-	"vecmap/internal/report"
-	"vecmap/internal/utilities"
+	"github.com/ctkqiang/vecmap/internal/constant"
+	"github.com/ctkqiang/vecmap/internal/database"
+	"github.com/ctkqiang/vecmap/internal/engine"
+	"github.com/ctkqiang/vecmap/internal/engine/vendors"
+	"github.com/ctkqiang/vecmap/internal/logger"
+	"github.com/ctkqiang/vecmap/internal/model"
+	"github.com/ctkqiang/vecmap/internal/report"
+	"github.com/ctkqiang/vecmap/internal/utilities"
 )
 
 // Config 控制应用初始化行为。

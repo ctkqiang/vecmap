@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"vecmap/internal/constant"
+	"github.com/ctkqiang/vecmap/internal/constant"
 )
 
 func TestMITRECatalogExpanded(t *testing.T) {

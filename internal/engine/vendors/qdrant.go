@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"vecmap/internal/engine"
-	"vecmap/internal/model"
-	"vecmap/internal/utilities"
+	"github.com/ctkqiang/vecmap/internal/engine"
+	"github.com/ctkqiang/vecmap/internal/model"
+	"github.com/ctkqiang/vecmap/internal/utilities"
 )
 
 // Qdrant 实现 Qdrant REST 与 gRPC 适配器。

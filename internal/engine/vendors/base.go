@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"vecmap/internal/engine"
-	"vecmap/internal/model"
-	"vecmap/internal/utilities"
+	"github.com/ctkqiang/vecmap/internal/engine"
+	"github.com/ctkqiang/vecmap/internal/model"
+	"github.com/ctkqiang/vecmap/internal/utilities"
 )
 
 // Base 提供厂商适配器共用的端口、探测、认证与 JSON 辅助能力。

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"sync"
 
-	"vecmap/internal/model"
+	"github.com/ctkqiang/vecmap/internal/model"
 )
 
 // advisoryFiles 内嵌 GitHub Security Advisory 数据快照。

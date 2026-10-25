@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"vecmap/internal/database"
-	"vecmap/internal/model"
-	"vecmap/internal/utilities"
+	"github.com/ctkqiang/vecmap/internal/database"
+	"github.com/ctkqiang/vecmap/internal/model"
+	"github.com/ctkqiang/vecmap/internal/utilities"
 )
 
 func TestStoreOpenAndWAL(t *testing.T) {

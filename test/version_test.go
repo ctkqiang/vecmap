@@ -3,7 +3,7 @@ package test
 import (
 	"testing"
 
-	"vecmap/internal/utilities"
+	"github.com/ctkqiang/vecmap/internal/utilities"
 )
 
 func TestParseVersion(t *testing.T) {

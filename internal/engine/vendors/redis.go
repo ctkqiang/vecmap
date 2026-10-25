@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"vecmap/internal/engine"
-	"vecmap/internal/model"
-	"vecmap/internal/utilities"
+	"github.com/ctkqiang/vecmap/internal/engine"
+	"github.com/ctkqiang/vecmap/internal/model"
+	"github.com/ctkqiang/vecmap/internal/utilities"
 )
 
 // Redis 实现 Redis / RediSearch 向量索引适配器。

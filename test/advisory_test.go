@@ -3,8 +3,8 @@ package test
 import (
 	"testing"
 
-	"vecmap/internal/engine"
-	"vecmap/internal/model"
+	"github.com/ctkqiang/vecmap/internal/engine"
+	"github.com/ctkqiang/vecmap/internal/model"
 )
 
 func TestAdvisoryCatalogBuiltins(t *testing.T) {

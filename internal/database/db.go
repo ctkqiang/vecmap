@@ -12,7 +12,7 @@ import (
 	"gorm.io/gorm"
 	gormlogger "gorm.io/gorm/logger"
 
-	"vecmap/internal/model"
+	"github.com/ctkqiang/vecmap/internal/model"
 )
 
 // ErrNotFound 表示查询的持久化实体不存在。

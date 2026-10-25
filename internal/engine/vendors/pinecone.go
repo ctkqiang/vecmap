@@ -6,9 +6,9 @@ import (
 	"net/url"
 	"time"
 
-	"vecmap/internal/engine"
-	"vecmap/internal/model"
-	"vecmap/internal/utilities"
+	"github.com/ctkqiang/vecmap/internal/engine"
+	"github.com/ctkqiang/vecmap/internal/model"
+	"github.com/ctkqiang/vecmap/internal/utilities"
 )
 
 // Pinecone 实现 Pinecone 数据平面与控制平面的只读适配器。

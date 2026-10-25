@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"strings"
 
-	"vecmap/internal/model"
+	"github.com/ctkqiang/vecmap/internal/model"
 )
 
 // AuthHeaders 根据厂商与凭据生成认证请求头。

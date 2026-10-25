@@ -1,4 +1,4 @@
-module vecmap
+module github.com/ctkqiang/vecmap
 
 go 1.27.2
 

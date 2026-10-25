@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"vecmap/internal/engine"
-	"vecmap/internal/model"
-	"vecmap/internal/utilities"
+	"github.com/ctkqiang/vecmap/internal/engine"
+	"github.com/ctkqiang/vecmap/internal/model"
+	"github.com/ctkqiang/vecmap/internal/utilities"
 )
 
 // Milvus 实现 Milvus REST v2、gRPC 反射与原始 RPC 适配器。

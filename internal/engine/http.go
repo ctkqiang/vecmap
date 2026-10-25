@@ -15,9 +15,9 @@ import (
 
 	"golang.org/x/time/rate"
 
-	"vecmap/internal/constant"
-	"vecmap/internal/model"
-	"vecmap/internal/utilities"
+	"github.com/ctkqiang/vecmap/internal/constant"
+	"github.com/ctkqiang/vecmap/internal/model"
+	"github.com/ctkqiang/vecmap/internal/utilities"
 )
 
 // HTTPClient 是带证据记录、限速与脱敏能力的共享 HTTP 客户端。

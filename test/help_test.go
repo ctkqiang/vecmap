@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"vecmap/internal/app"
-	"vecmap/internal/utilities"
+	"github.com/ctkqiang/vecmap/internal/app"
+	"github.com/ctkqiang/vecmap/internal/utilities"
 )
 
 func TestParseArgsHelpTopic(t *testing.T) {

@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"vecmap/internal/utilities"
+	"github.com/ctkqiang/vecmap/internal/utilities"
 )
 
 func TestTBasics(t *testing.T) {

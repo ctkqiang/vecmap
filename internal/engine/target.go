@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"strings"
 
-	"vecmap/internal/constant"
-	"vecmap/internal/model"
+	"github.com/ctkqiang/vecmap/internal/constant"
+	"github.com/ctkqiang/vecmap/internal/model"
 )
 
 // ParseTarget 解析单个目标字符串。

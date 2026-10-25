@@ -5,9 +5,9 @@ import (
 	"sort"
 	"strings"
 
-	"vecmap/internal/constant"
-	"vecmap/internal/model"
-	"vecmap/internal/utilities"
+	"github.com/ctkqiang/vecmap/internal/constant"
+	"github.com/ctkqiang/vecmap/internal/model"
+	"github.com/ctkqiang/vecmap/internal/utilities"
 )
 
 // AdvisoryCatalog 表示内置与外部导入公告的合并目录。

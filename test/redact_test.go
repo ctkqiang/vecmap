@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"vecmap/internal/utilities"
+	"github.com/ctkqiang/vecmap/internal/utilities"
 )
 
 func TestSanitizeURL(t *testing.T) {

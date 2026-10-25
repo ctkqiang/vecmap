@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"vecmap/internal/constant"
+	"github.com/ctkqiang/vecmap/internal/constant"
 )
 
 // RespKind 表示 RESP 应答类型。

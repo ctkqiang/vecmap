@@ -22,7 +22,7 @@ import (
 	"google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/types/dynamicpb"
 
-	"vecmap/internal/model"
+	"github.com/ctkqiang/vecmap/internal/model"
 )
 
 // GRPCClient 提供 gRPC 健康检查、反射与描述符驱动调用能力。
@@ -45,7 +45,7 @@ func NewGRPCClient(options model.GRPCOptions) *GRPCClient {
 		options.MaxMsgSize = 4 << 20
 	}
 	if options.UserAgent == "" {
-		options.UserAgent = "vecmap/1.0"
+		options.UserAgent = "github.com/ctkqiang/vecmap/1.0"
 	}
 	return &GRPCClient{options: options}
 }

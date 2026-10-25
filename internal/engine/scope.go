@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"vecmap/internal/model"
+	"github.com/ctkqiang/vecmap/internal/model"
 )
 
 // ErrScopeDenied 表示目标未被授权范围覆盖。

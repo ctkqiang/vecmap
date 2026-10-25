@@ -3,7 +3,7 @@ package constant
 import (
 	"time"
 
-	"vecmap/internal/model"
+	"github.com/ctkqiang/vecmap/internal/model"
 )
 
 const (
@@ -28,7 +28,7 @@ const (
 	// DefaultMaxBody 是单次 HTTP 响应最大采集字节数。
 	DefaultMaxBody = 4 << 20
 	// DefaultUserAgent 是默认请求标识。
-	DefaultUserAgent = "vecmap/" + Version
+	DefaultUserAgent = "github.com/ctkqiang/vecmap/" + Version
 	// DefaultTenant 是 Chroma 默认租户名。
 	DefaultTenant = "default_tenant"
 	// DefaultChromaDatabase 是 Chroma 默认数据库名。

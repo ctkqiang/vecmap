@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"strings"
 
-	"vecmap/internal/model"
-	"vecmap/internal/utilities"
+	"github.com/ctkqiang/vecmap/internal/model"
+	"github.com/ctkqiang/vecmap/internal/utilities"
 )
 
 // FingerprintResult 表示指纹识别结果及其命中的适配器。

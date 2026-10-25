@@ -7,9 +7,9 @@ import (
 	"sort"
 	"strings"
 
-	"vecmap/internal/app"
-	"vecmap/internal/model"
-	"vecmap/internal/utilities"
+	"github.com/ctkqiang/vecmap/internal/app"
+	"github.com/ctkqiang/vecmap/internal/model"
+	"github.com/ctkqiang/vecmap/internal/utilities"
 )
 
 func main() {

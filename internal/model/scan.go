@@ -77,7 +77,7 @@ func (o ScanOptions) Normalize() ScanOptions {
 		o.MaxVectorValues = 256
 	}
 	if o.UserAgent == "" {
-		o.UserAgent = "vecmap/1.0"
+		o.UserAgent = "github.com/ctkqiang/vecmap/1.0"
 	}
 	if o.Headers == nil {
 		o.Headers = map[string]string{}

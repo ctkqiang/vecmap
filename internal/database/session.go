@@ -8,7 +8,7 @@ import (
 
 	"gorm.io/gorm"
 
-	"vecmap/internal/model"
+	"github.com/ctkqiang/vecmap/internal/model"
 )
 
 // CreateSession 创建扫描会话。

@@ -1,6 +1,6 @@
 package constant
 
-import "vecmap/internal/model"
+import "github.com/ctkqiang/vecmap/internal/model"
 
 // MITRE 战术常量。
 const (

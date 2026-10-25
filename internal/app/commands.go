@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"vecmap/internal/model"
-	"vecmap/internal/utilities"
+	"github.com/ctkqiang/vecmap/internal/model"
+	"github.com/ctkqiang/vecmap/internal/utilities"
 )
 
 // UsageError 表示命令行参数使用错误。

@@ -44,39 +44,124 @@ and never invoked.
 
 ## Installation
 
+### Go Install (no clone required)
+
 ```bash
-# Requires Go 1.27+ with CGO enabled (SQLite driver)
-go build -o bin/vecmap ./cmd/vecmap
+go install github.com/ctkqiang/vecmap/cmd/vecmap@latest
+```
+
+The binary lands in `$(go env GOPATH)/bin/vecmap` — make sure it is on your `PATH`.
+Requires Go 1.27+ with CGO enabled (SQLite driver). For unreleased commits use
+`@main`; `@latest` resolves once a `v*` tag (e.g. `v1.0.0`) is pushed.
+
+### Build from source
+
+```bash
+go build -o build/vecmap ./cmd/vecmap
 ```
 
 ## Quick Start
 
 ```bash
 # Help (Chinese devices get Chinese by default; --lang=en switches to English)
-./bin/vecmap help
-./bin/vecmap help scan            # full options for one command
-./bin/vecmap scan --usage         # synopsis only
+./build/vecmap help
+./build/vecmap help scan            # full options for one command
+./build/vecmap scan --usage         # synopsis only
 
 # Standard scan: fingerprinting, read-only probes, CVE correlation
-./bin/vecmap scan --authorize \
+./build/vecmap scan --authorize \
   --scope-cidr 10.0.0.0/24 \
   http://10.0.0.5:6333
 
 # Deep scan: enumerate collections, extract records and vectors
-./bin/vecmap dump --authorize --vectors --max-records 500 \
+./build/vecmap dump --authorize --vectors --max-records 500 \
   --scope-cidr 10.0.0.0/24 \
   http://10.0.0.5:6333
 
 # Port discovery
-./bin/vecmap discover --authorize --scope-cidr 10.0.0.0/24 10.0.0.0/24
+./build/vecmap discover --authorize --scope-cidr 10.0.0.0/24 10.0.0.0/24
 
 # Sessions and reports
-./bin/vecmap sessions
-./bin/vecmap report --session <id> --format markdown --output report.md
+./build/vecmap sessions
+./build/vecmap report --session <id> --format markdown --output report.md
 
 # Manual page and shell completion
-./bin/vecmap man | man -l -
-source <(./bin/vecmap completion bash)
+./build/vecmap man | man -l -
+source <(./build/vecmap completion bash)
+```
+
+## Help Output
+
+`./build/vecmap help --lang=en` prints:
+
+```
+__     __ _____ _____ __  __    _    ____  
+\ \   / // ____/ ____|  \/  |  / \  |  _ \ 
+ \ \ / /| |   | |    | |\/| | / _ \ | |_) |
+  \ V / | |___| |____| |  | |/ ___ \|  __/ 
+   \_/  |______\______|_|  |_/_/   \_\_|    
+vecmap v1.0.0 — Vector database attack-surface assessment framework
+USAGE
+  vecmap <command> [options]
+  vecmap <command> --help
+
+DESCRIPTION
+  vecmap is a local-only, sqlmap-style attack-surface assessment framework for
+  vector databases and retrieval infrastructure (Qdrant, Milvus, Weaviate, Chroma,
+  Redis, Elasticsearch, OpenSearch, pgvector, Typesense, Pinecone, Vespa).
+  All probes are strictly read-only; destructive endpoints are never invoked.
+
+COMMANDS
+  scan Attack-surface scan of vector databases: product fingerprinting, read-only surface probes, CVE/CNVD correlation and risk findings. Use --mode deep (or --extract) to enumerate collections and extract records.
+  discover Concurrent TCP/HTTP/TLS/gRPC/RESP port discovery across hosts or CIDR ranges. Open ports are persisted as session targets.
+  dump Deep enumeration and record extraction (implies --mode deep --extract). Restrict scope with --collection and --namespace.
+  sessions List locally persisted sessions, newest first.
+  report Render a session report offline. Without --output the report is printed to stdout.
+  advisories List the built-in advisory catalog sourced from embedded GitHub Security Advisory snapshots.
+  delete Delete a session and all of its associated evidence (cascading).
+  version Print the version string.
+  help Show this help or the detailed usage of one command.
+  man Print the manual page in roff format (pipe to man -l - or install docs/vecmap.1).
+  completion Print a shell completion script for bash or zsh.
+
+GLOBAL OPTIONS
+  --db PATH Local database path (default ~/.vecmap/vecmap.db)
+  --lang en|zh UI and report language (default: device locale, else en)
+  --verbose Verbose protocol logging
+  --help, -h Show help for the command
+  --usage Print the command synopsis only
+
+EXAMPLES
+  # Standard scan of one Qdrant host
+  vecmap scan --authorize --scope-cidr 10.0.0.0/24 http://10.0.0.5:6333
+  # Deep scan with authenticated extraction
+  vecmap scan --authorize --mode deep --api-key SECRET --vectors 10.0.0.5:6333
+  # Scan a Redis endpoint over TLS
+  vecmap scan --authorize rediss://db.example.com:6380
+  # Scan a PostgreSQL pgvector database
+  vecmap scan --authorize --dsn 'postgres://user:pass@10.0.0.9:5432/vecdb' 10.0.0.9:5432
+
+TARGET FORMATS
+  http://host:6333  https://host  redis://host:6379  postgres://user:pass@host/db  grpc://host:19530
+  10.0.0.5:6333    10.0.0.0/24 (CIDR, expand with --ports)
+
+EXIT STATUS
+  0  success        1  runtime error        2  usage error
+
+ENVIRONMENT
+  VECMAP_DB     default database path (overrides ~/.vecmap/vecmap.db)
+  VECMAP_LANG   default UI language (en|zh)
+  NO_COLOR      disable colored output
+  HTTP_PROXY / HTTPS_PROXY   honored when --proxy is not set
+
+FILES
+  ~/.vecmap/vecmap.db   local session database (dir 0700, file 0600)
+  <--output path>       session reports (0600)
+
+AUTHORIZATION: you must obtain written permission for every target
+and pass --authorize. Unauthorized scanning is illegal.
+
+See 'vecmap help <command>' for per-command options, and 'vecmap man' for the manual.
 ```
 
 ## Commands
@@ -192,12 +277,14 @@ Refresh: `bash scripts/refresh_advisories.sh`. Unverified external advisories
 ## Development
 
 ```bash
-make build    # build bin/vecmap
-make test     # go test ./... (package test)
-make vet      # go vet ./...
-make fmt      # gofmt -l .
-make manpage  # sync docs/vecmap.1 and docs/vecmap.zh.1
+make build    # build ./build/vecmap
+make inspect  # go vet ./...
+make clean    # remove build artifacts and the local session database
+go test ./... # run the test suite (package test)
 ```
+
+`make manpage` syncs the embedded manual pages to `docs/vecmap.1` and
+`docs/vecmap.zh.1` for system-wide installation.
 
 ## Project Layout
 

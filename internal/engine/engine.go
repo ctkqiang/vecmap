@@ -9,9 +9,9 @@ import (
 	"strings"
 	"sync"
 
-	"vecmap/internal/constant"
-	"vecmap/internal/logger"
-	"vecmap/internal/model"
+	"github.com/ctkqiang/vecmap/internal/constant"
+	"github.com/ctkqiang/vecmap/internal/logger"
+	"github.com/ctkqiang/vecmap/internal/model"
 )
 
 var (

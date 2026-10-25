@@ -3,7 +3,7 @@ package test
 import (
 	"testing"
 
-	"vecmap/internal/model"
+	"github.com/ctkqiang/vecmap/internal/model"
 )
 
 func TestSeverityLabel(t *testing.T) {

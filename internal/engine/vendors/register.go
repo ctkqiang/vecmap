@@ -1,6 +1,6 @@
 package vendors
 
-import "vecmap/internal/engine"
+import "github.com/ctkqiang/vecmap/internal/engine"
 
 // RegisterAll 将全部内置厂商适配器注册到注册表。
 //

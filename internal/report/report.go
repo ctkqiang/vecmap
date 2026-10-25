@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"vecmap/internal/constant"
-	"vecmap/internal/model"
-	"vecmap/internal/utilities"
+	"github.com/ctkqiang/vecmap/internal/constant"
+	"github.com/ctkqiang/vecmap/internal/model"
+	"github.com/ctkqiang/vecmap/internal/utilities"
 )
 
 // Builder 根据会话聚合数据构建评估报告。

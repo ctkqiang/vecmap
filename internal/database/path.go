@@ -4,7 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"vecmap/internal/constant"
+	"github.com/ctkqiang/vecmap/internal/constant"
 )
 
 // DefaultPath 返回本地数据库的默认绝对路径。

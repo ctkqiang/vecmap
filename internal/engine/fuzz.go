@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"vecmap/internal/model"
-	"vecmap/internal/utilities"
+	"github.com/ctkqiang/vecmap/internal/model"
+	"github.com/ctkqiang/vecmap/internal/utilities"
 )
 
 // ProbeSpec 描述一条只读探测请求。

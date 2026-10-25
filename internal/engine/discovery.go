@@ -13,8 +13,8 @@ import (
 	"sync"
 	"time"
 
-	"vecmap/internal/constant"
-	"vecmap/internal/model"
+	"github.com/ctkqiang/vecmap/internal/constant"
+	"github.com/ctkqiang/vecmap/internal/model"
 )
 
 // Discover 对主机与端口组合执行并发只读发现。

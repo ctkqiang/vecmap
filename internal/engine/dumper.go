@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"vecmap/internal/model"
+	"github.com/ctkqiang/vecmap/internal/model"
 )
 
 // Dumper 协调厂商适配器执行集合枚举与只读记录提取。

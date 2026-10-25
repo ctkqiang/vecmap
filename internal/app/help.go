@@ -9,8 +9,8 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 
-	"vecmap/internal/constant"
-	"vecmap/internal/model"
+	"github.com/ctkqiang/vecmap/internal/constant"
+	"github.com/ctkqiang/vecmap/internal/model"
 )
 
 // 帮助渲染样式（复用用户的 lipgloss 模块）。

@@ -5,8 +5,8 @@ import (
 	"errors"
 	"testing"
 
-	"vecmap/internal/engine"
-	"vecmap/internal/model"
+	"github.com/ctkqiang/vecmap/internal/engine"
+	"github.com/ctkqiang/vecmap/internal/model"
 )
 
 func TestScoperPermissiveExclusionOnly(t *testing.T) {

@@ -3,7 +3,7 @@ package test
 import (
 	"testing"
 
-	"vecmap/internal/app"
+	"github.com/ctkqiang/vecmap/internal/app"
 )
 
 func TestParseArgsScan(t *testing.T) {

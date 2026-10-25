@@ -1,7 +1,7 @@
 package logger
 
 import (
-	ulogger "vecmap/internal/utilities/logger"
+	ulogger "github.com/ctkqiang/vecmap/internal/utilities/logger"
 )
 
 // Logger 是内部统一日志接口，包装用户的 Lipgloss 日志器。
