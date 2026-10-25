@@ -37,6 +37,8 @@ type App struct {
 //
 // 参数 config 为数据库路径、公告文件与日志配置。
 // 返回已打开本地存储并加载公告目录的应用实例。
+// 不需要本地数据库的命令（version、help、advisories）应使用 NewLite，
+// 避免在仓库目录意外创建数据库文件。
 func New(config Config) (*App, error) {
 	if config.DatabasePath == "" {
 		config.DatabasePath = constant.DefaultDatabaseFile
@@ -45,16 +47,29 @@ func New(config Config) (*App, error) {
 	if err != nil {
 		return nil, err
 	}
-	extra, err := engine.LoadAdvisoryFile(config.AdvisoriesPath)
+	app, err := NewLite(config)
 	if err != nil {
 		_ = store.Close()
+		return nil, err
+	}
+	app.store = store
+	return app, nil
+}
+
+// NewLite 初始化不打开本地数据库的应用。
+//
+// 参数 config 为公告文件与日志配置；数据库路径被忽略。
+// 返回仅提供公告目录、日志与帮助文本的应用实例；
+// 任何需要持久化的命令在使用前必须先调用 New 或注入 Store。
+func NewLite(config Config) (*App, error) {
+	extra, err := engine.LoadAdvisoryFile(config.AdvisoriesPath)
+	if err != nil {
 		return nil, err
 	}
 	if config.Language != "zh" && config.Language != "en" {
 		config.Language = "en"
 	}
 	return &App{
-		store:    store,
 		catalog:  engine.NewAdvisoryCatalog(extra),
 		log:      logger.New(config.Verbose),
 		language: config.Language,
@@ -92,8 +107,11 @@ func (a *App) Language() string {
 
 // Close 关闭本地数据库。
 //
-// 返回关闭错误；调用方负责在退出前调用。
+// 返回关闭错误；Lite 模式实例未打开数据库，关闭为空操作。
 func (a *App) Close() error {
+	if a.store == nil {
+		return nil
+	}
 	return a.store.Close()
 }
 

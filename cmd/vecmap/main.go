@@ -26,6 +26,9 @@ func run(args []string) error {
 	if err != nil {
 		return err
 	}
+	if command.Action == "version" || command.Action == "help" || command.Action == "advisories" {
+		return runLite(command)
+	}
 	application, err := app.New(app.Config{
 		DatabasePath:   command.DBPath,
 		AdvisoriesPath: command.AdvisoriesPath,
@@ -37,12 +40,6 @@ func run(args []string) error {
 	}
 	defer func() { _ = application.Close() }()
 	switch command.Action {
-	case "help":
-		fmt.Print(application.Usage())
-		return nil
-	case "version":
-		fmt.Println(application.Version())
-		return nil
 	case "scan", "dump":
 		return runScan(application, command)
 	case "discover":
@@ -51,13 +48,34 @@ func run(args []string) error {
 		return runSessions(application)
 	case "report":
 		return runReport(application, command)
-	case "advisories":
-		return runAdvisories(application, command)
 	case "delete":
 		return runDelete(application, command)
 	default:
 		return fmt.Errorf("unknown command: %s", command.Action)
 	}
+}
+
+// runLite 执行不依赖本地数据库的只读命令。
+//
+// 参数 command 为解析后的命令；这些命令不会创建数据库文件。
+func runLite(command *app.Command) error {
+	application, err := app.NewLite(app.Config{
+		AdvisoriesPath: command.AdvisoriesPath,
+		Verbose:        command.Verbose,
+		Language:       command.Language,
+	})
+	if err != nil {
+		return err
+	}
+	switch command.Action {
+	case "version":
+		fmt.Println(application.Version())
+	case "help":
+		fmt.Print(application.Usage())
+	case "advisories":
+		return runAdvisories(application, command)
+	}
+	return nil
 }
 
 func runScan(application *app.App, command *app.Command) error {
