@@ -1,0 +1,11 @@
+# 构建产物
+/build/
+/vecmap
+
+# 本地扫描数据库
+*.db
+*.db-wal
+*.db-shm
+
+# 系统文件
+.DS_Store
