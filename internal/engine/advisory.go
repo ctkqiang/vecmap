@@ -173,7 +173,7 @@ func (c *AdvisoryCatalog) add(advisory model.Advisory) {
 		advisory.Severity = model.SeverityForScore(advisory.CVSS.Score)
 	}
 	c.entries = append(c.entries, advisory)
-	keys := []string{advisory.ID, advisory.CVE, advisory.CNVD}
+	keys := []string{advisory.ID, advisory.CVE, advisory.CNVD, advisory.GHSA}
 	for _, key := range keys {
 		key = strings.ToLower(strings.TrimSpace(key))
 		if key != "" {

@@ -1,0 +1,83 @@
+{
+  "ghsa_id": "GHSA-f4j7-r4q5-qw2c",
+  "cve_id": "CVE-2026-45829",
+  "url": "https://api.github.com/advisories/GHSA-f4j7-r4q5-qw2c",
+  "html_url": "https://github.com/advisories/GHSA-f4j7-r4q5-qw2c",
+  "summary": "ChromaDB Python project has a pre-authentication code injection vulnerability",
+  "description": "A pre-authentication, code injection vulnerability in version 1.0.0 or later of the ChromaDB Python project allows an unauthenticated attacker to run arbitrary code on the server by sending a malicious model repository and trust_remote_code set to true in the /api/v2/tenants/{tenant}/databases/{db}/collections endpoint.",
+  "type": "reviewed",
+  "severity": "critical",
+  "repository_advisory_url": null,
+  "source_code_location": "https://github.com/chroma-core/chroma",
+  "identifiers": [
+    {
+      "value": "GHSA-f4j7-r4q5-qw2c",
+      "type": "GHSA"
+    },
+    {
+      "value": "CVE-2026-45829",
+      "type": "CVE"
+    }
+  ],
+  "references": [
+    "https://nvd.nist.gov/vuln/detail/CVE-2026-45829",
+    "https://github.com/chroma-core/chroma/issues/6717",
+    "https://www.hiddenlayer.com/research/chromatoast-served-pre-auth",
+    "https://access.redhat.com/security/cve/CVE-2026-45829",
+    "https://bugzilla.redhat.com/show_bug.cgi?id=2479623",
+    "https://github.com/advisories/GHSA-f4j7-r4q5-qw2c",
+    "https://github.com/chroma-core/chroma",
+    "https://github.com/pypa/advisory-database/tree/main/vulns/chromadb/PYSEC-2026-311.yaml",
+    "https://pypi.org/project/chromadb"
+  ],
+  "published_at": "2026-05-18T18:31:30Z",
+  "updated_at": "2026-10-05T21:32:32Z",
+  "github_reviewed_at": "2026-05-29T19:15:04Z",
+  "nvd_published_at": "2026-05-18T17:16:34Z",
+  "withdrawn_at": null,
+  "vulnerabilities": [
+    {
+      "package": {
+        "ecosystem": "pip",
+        "name": "chromadb"
+      },
+      "vulnerable_version_range": ">= 1.0.0, <= 1.5.9",
+      "first_patched_version": null,
+      "vulnerable_functions": [
+
+      ]
+    }
+  ],
+  "cvss_severities": {
+    "cvss_v3": {
+      "vector_string": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H",
+      "score": 10.0
+    },
+    "cvss_v4": {
+      "vector_string": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:H/SI:H/SA:H/E:P",
+      "score": 9.3
+    }
+  },
+  "cwes": [
+    {
+      "cwe_id": "CWE-94",
+      "name": "Improper Control of Generation of Code ('Code Injection')"
+    },
+    {
+      "cwe_id": "CWE-502",
+      "name": "Deserialization of Untrusted Data"
+    }
+  ],
+  "credits": [
+
+  ],
+  "comments": 0,
+  "cvss": {
+    "vector_string": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H",
+    "score": 10.0
+  },
+  "epss": {
+    "percentage": 0.01411,
+    "percentile": 0.72259
+  }
+}

@@ -97,6 +97,19 @@ go build -o bin/vecmap ./cmd/vecmap
 外部条目必须通过基础校验（标识、标题、厂商、参考链接），且默认 `Verified=false`，
 仅作目录引用，不参与自动版本匹配。
 
+### 公告数据来源
+
+内置公告**不做任何 Go 源码硬编码**，全部来自内嵌数据文件
+（`internal/constant/data/advisories/`，通过 `go:embed` 打入二进制）：
+
+| 文件 | 内容 |
+|---|---|
+| `GHSA-*.json` | GitHub Advisory API 原始记录（官方数据快照） |
+| `extra.json` | 无公开 GHSA JSON 的补充条目（CVE-2026-69111、CVE-2026-92782、Typesense 两条），字段同 GHSA 模式，来源 NVD/CVE.org/VulnCheck |
+| `meta.json` | 中文本地化、厂商归属、CVE↔CNVD 关联、MITRE 映射、匹配策略（matchable）与影响区间校正 |
+
+更新快照：`bash scripts/refresh_advisories.sh`（重新拉取 GHSA，不覆盖 meta/extra）。
+
 ## 数据与报告
 
 - 本地数据库默认 `~/.vecmap/vecmap.db`（`--db` 可改），WAL + busy_timeout，

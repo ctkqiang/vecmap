@@ -1,0 +1,78 @@
+{
+  "ghsa_id": "GHSA-7m75-x27w-r52r",
+  "cve_id": "CVE-2024-3829",
+  "url": "https://api.github.com/advisories/GHSA-7m75-x27w-r52r",
+  "html_url": "https://github.com/advisories/GHSA-7m75-x27w-r52r",
+  "summary": "qdrant input validation failure ",
+  "description": "qdrant/qdrant version 1.9.0-dev is vulnerable to arbitrary file read and write during the snapshot recovery process. Attackers can exploit this vulnerability by manipulating snapshot files to include symlinks, leading to arbitrary file read by adding a symlink that points to a desired file on the filesystem and arbitrary file write by including a symlink and a payload file in the snapshot's directory structure. This vulnerability allows for the reading and writing of arbitrary files on the server, which could potentially lead to a full takeover of the system. The issue is fixed in version v1.9.0.",
+  "type": "reviewed",
+  "severity": "critical",
+  "repository_advisory_url": null,
+  "source_code_location": "https://github.com/qdrant/qdrant-client",
+  "identifiers": [
+    {
+      "value": "GHSA-7m75-x27w-r52r",
+      "type": "GHSA"
+    },
+    {
+      "value": "CVE-2024-3829",
+      "type": "CVE"
+    }
+  ],
+  "references": [
+    "https://nvd.nist.gov/vuln/detail/CVE-2024-3829",
+    "https://github.com/qdrant/qdrant/commit/ee7a31ec3459a6a4219200234615c1817ab82260",
+    "https://huntr.com/bounties/abd9c906-75ee-4d84-b76d-ce1386401e08",
+    "https://github.com/advisories/GHSA-7m75-x27w-r52r"
+  ],
+  "published_at": "2024-06-03T12:30:38Z",
+  "updated_at": "2025-10-15T15:48:22Z",
+  "github_reviewed_at": "2024-06-04T17:50:58Z",
+  "nvd_published_at": "2024-06-03T10:15:14Z",
+  "withdrawn_at": null,
+  "vulnerabilities": [
+    {
+      "package": {
+        "ecosystem": "pip",
+        "name": "qdrant-client"
+      },
+      "vulnerable_version_range": "< 1.9.0",
+      "first_patched_version": "1.9.0",
+      "vulnerable_functions": [
+
+      ]
+    }
+  ],
+  "cvss_severities": {
+    "cvss_v3": {
+      "vector_string": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+      "score": 9.8
+    },
+    "cvss_v4": {
+      "vector_string": null,
+      "score": 0.0
+    }
+  },
+  "cwes": [
+    {
+      "cwe_id": "CWE-20",
+      "name": "Improper Input Validation"
+    },
+    {
+      "cwe_id": "CWE-59",
+      "name": "Improper Link Resolution Before File Access ('Link Following')"
+    }
+  ],
+  "credits": [
+
+  ],
+  "comments": 0,
+  "cvss": {
+    "vector_string": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "score": 9.8
+  },
+  "epss": {
+    "percentage": 0.00909,
+    "percentile": 0.59512
+  }
+}

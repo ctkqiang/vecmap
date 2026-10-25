@@ -14,6 +14,7 @@ func TestAdvisoryCatalogBuiltins(t *testing.T) {
 		t.Fatalf("expected at least 10 built-in advisories, got %d", len(advisories))
 	}
 	verified := 0
+	withGHSA := 0
 	for _, advisory := range advisories {
 		if advisory.Verified {
 			verified++
@@ -21,9 +22,18 @@ func TestAdvisoryCatalogBuiltins(t *testing.T) {
 		if advisory.Matchable && advisory.Verified && len(advisory.References) == 0 {
 			t.Fatalf("matchable advisory %s has no references", advisory.ID)
 		}
+		if advisory.Source == "" {
+			t.Fatalf("advisory %s has no source", advisory.ID)
+		}
+		if advisory.GHSA != "" {
+			withGHSA++
+		}
 	}
 	if verified == 0 {
 		t.Fatalf("expected verified advisories in catalog")
+	}
+	if withGHSA < 8 {
+		t.Fatalf("expected most advisories to come from GHSA records, got %d with GHSA IDs", withGHSA)
 	}
 }
 
@@ -37,6 +47,9 @@ func TestAdvisoryCatalogByID(t *testing.T) {
 	}
 	if _, exists := catalog.ByID("CNVD-2021-95914"); !exists {
 		t.Fatalf("expected CNVD-2021-95914 in catalog")
+	}
+	if _, exists := catalog.ByID("GHSA-mhjq-8c7m-3f7p"); !exists {
+		t.Fatalf("expected GHSA lookup to work")
 	}
 	if _, exists := catalog.ByID("CVE-9999-99999"); exists {
 		t.Fatalf("expected fabricated ID to be absent")
@@ -69,8 +82,9 @@ func TestAdvisoryMatchMilvus(t *testing.T) {
 			t.Fatalf("expected %s to match milvus 2.5.10, got %v", want, ids)
 		}
 	}
-	if len(catalog.Match(model.VendorMilvus, "milvus", "2.5.27")) == 0 {
-		t.Fatalf("expected milvus 2.5.27 to still match CVE-2025-64513 (< 2.5.21 fails but others may)")
+	// 2.5.27 已修复 64513 与 26190，但 69111（<= 2.6.22）仍然命中。
+	if !contains(matchIDs(catalog.Match(model.VendorMilvus, "milvus", "2.5.27")), "CVE-2026-69111") {
+		t.Fatalf("expected CVE-2026-69111 to still match milvus 2.5.27")
 	}
 }
 

@@ -172,6 +172,9 @@ func resolveAdvisories(findings []*model.Finding, advisories []model.Advisory) [
 		if advisory.CNVD != "" {
 			byID[advisory.CNVD] = advisory
 		}
+		if advisory.GHSA != "" {
+			byID[advisory.GHSA] = advisory
+		}
 	}
 	seen := map[string]struct{}{}
 	result := make([]*model.Advisory, 0, 4)

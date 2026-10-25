@@ -1,0 +1,69 @@
+{
+  "ghsa_id": "GHSA-9wpj-h5jq-88p9",
+  "cve_id": "CVE-2022-0543",
+  "url": "https://api.github.com/advisories/GHSA-9wpj-h5jq-88p9",
+  "html_url": "https://github.com/advisories/GHSA-9wpj-h5jq-88p9",
+  "summary": "It was discovered, that redis, a persistent key-value database, due to a packaging issue, is pron...",
+  "description": "It was discovered, that redis, a persistent key-value database, due to a packaging issue, is prone to a (Debian-specific) Lua sandbox escape, which could result in remote code execution.",
+  "type": "unreviewed",
+  "severity": "critical",
+  "repository_advisory_url": null,
+  "source_code_location": "",
+  "identifiers": [
+    {
+      "value": "GHSA-9wpj-h5jq-88p9",
+      "type": "GHSA"
+    },
+    {
+      "value": "CVE-2022-0543",
+      "type": "CVE"
+    }
+  ],
+  "references": [
+    "https://nvd.nist.gov/vuln/detail/CVE-2022-0543",
+    "https://bugs.debian.org/1005787",
+    "https://lists.debian.org/debian-security-announce/2022/msg00048.html",
+    "https://www.debian.org/security/2022/dsa-5081",
+    "https://www.ubercomp.com/posts/2022-01-20_redis_on_debian_rce",
+    "http://packetstormsecurity.com/files/166885/Redis-Lua-Sandbox-Escape.html",
+    "https://security.netapp.com/advisory/ntap-20220331-0004",
+    "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?field_cve=CVE-2022-0543",
+    "https://github.com/advisories/GHSA-9wpj-h5jq-88p9"
+  ],
+  "published_at": "2022-02-19T00:01:03Z",
+  "updated_at": "2025-10-22T00:32:30Z",
+  "github_reviewed_at": null,
+  "nvd_published_at": "2022-02-18T20:15:00Z",
+  "withdrawn_at": null,
+  "vulnerabilities": [
+
+  ],
+  "cvss_severities": {
+    "cvss_v3": {
+      "vector_string": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H",
+      "score": 10.0
+    },
+    "cvss_v4": {
+      "vector_string": null,
+      "score": 0.0
+    }
+  },
+  "cwes": [
+    {
+      "cwe_id": "CWE-862",
+      "name": "Missing Authorization"
+    }
+  ],
+  "credits": [
+
+  ],
+  "comments": 0,
+  "cvss": {
+    "vector_string": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H",
+    "score": 10.0
+  },
+  "epss": {
+    "percentage": 0.99351,
+    "percentile": 0.99936
+  }
+}
