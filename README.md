@@ -99,7 +99,8 @@ go build -o bin/vecmap ./cmd/vecmap
 
 ## 数据与报告
 
-- 本地数据库默认 `vecmap.db`（`--db` 可改），WAL + busy_timeout。
+- 本地数据库默认 `~/.vecmap/vecmap.db`（`--db` 可改），WAL + busy_timeout，
+  目录与文件权限自动收紧为 0700/0600。
 - 会话聚合目标、步骤、探测结果、集合、记录、发现与 HTTP 证据；
   `sessions` / `report` 命令离线复现。
 - 报告内建 MITRE ATT&CK 技术目录；发现自带 T1595/T1046/T1213/T1567 等映射。

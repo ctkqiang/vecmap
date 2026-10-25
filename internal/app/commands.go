@@ -164,7 +164,7 @@ func (c *Command) BuildReportOptions() model.ReportOptions {
 
 func parseGlobalFlags(command *Command, args []string) {
 	set := flag.NewFlagSet("vecmap", flag.ContinueOnError)
-	set.StringVar(&command.DBPath, "db", "", "database path")
+	set.StringVar(&command.DBPath, "db", "", "database path (default ~/.vecmap/vecmap.db)")
 	set.StringVar(&command.Language, "lang", "en", "language")
 	set.BoolVar(&command.Verbose, "verbose", false, "verbose output")
 	set.BoolVar(&command.Help, "help", false, "show help")
@@ -174,7 +174,7 @@ func parseGlobalFlags(command *Command, args []string) {
 
 func parseScanFlags(command *Command, args []string) {
 	set := flag.NewFlagSet("scan", flag.ContinueOnError)
-	set.StringVar(&command.DBPath, "db", "", "database path")
+	set.StringVar(&command.DBPath, "db", "", "database path (default ~/.vecmap/vecmap.db)")
 	set.StringVar(&command.Language, "lang", "en", "language")
 	set.BoolVar(&command.Verbose, "verbose", false, "verbose output")
 	set.BoolVar(&command.Help, "help", false, "show help")
@@ -219,7 +219,7 @@ func parseScanFlags(command *Command, args []string) {
 
 func parseDiscoverFlags(command *Command, args []string) {
 	set := flag.NewFlagSet("discover", flag.ContinueOnError)
-	set.StringVar(&command.DBPath, "db", "", "database path")
+	set.StringVar(&command.DBPath, "db", "", "database path (default ~/.vecmap/vecmap.db)")
 	set.StringVar(&command.Language, "lang", "en", "language")
 	set.BoolVar(&command.Verbose, "verbose", false, "verbose output")
 	set.BoolVar(&command.Help, "help", false, "show help")
@@ -240,7 +240,7 @@ func parseDiscoverFlags(command *Command, args []string) {
 
 func parseSessionsFlags(command *Command, args []string) {
 	set := flag.NewFlagSet("sessions", flag.ContinueOnError)
-	set.StringVar(&command.DBPath, "db", "", "database path")
+	set.StringVar(&command.DBPath, "db", "", "database path (default ~/.vecmap/vecmap.db)")
 	set.StringVar(&command.Language, "lang", "en", "language")
 	set.BoolVar(&command.Verbose, "verbose", false, "verbose output")
 	set.BoolVar(&command.Help, "help", false, "show help")
@@ -249,7 +249,7 @@ func parseSessionsFlags(command *Command, args []string) {
 
 func parseReportFlags(command *Command, args []string) {
 	set := flag.NewFlagSet("report", flag.ContinueOnError)
-	set.StringVar(&command.DBPath, "db", "", "database path")
+	set.StringVar(&command.DBPath, "db", "", "database path (default ~/.vecmap/vecmap.db)")
 	set.StringVar(&command.Language, "lang", "en", "language")
 	set.BoolVar(&command.Verbose, "verbose", false, "verbose output")
 	set.BoolVar(&command.Help, "help", false, "show help")
@@ -261,7 +261,7 @@ func parseReportFlags(command *Command, args []string) {
 
 func parseDeleteFlags(command *Command, args []string) {
 	set := flag.NewFlagSet("delete", flag.ContinueOnError)
-	set.StringVar(&command.DBPath, "db", "", "database path")
+	set.StringVar(&command.DBPath, "db", "", "database path (default ~/.vecmap/vecmap.db)")
 	set.StringVar(&command.Language, "lang", "en", "language")
 	set.BoolVar(&command.Verbose, "verbose", false, "verbose output")
 	set.BoolVar(&command.Help, "help", false, "show help")

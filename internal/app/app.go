@@ -41,7 +41,7 @@ type App struct {
 // 避免在仓库目录意外创建数据库文件。
 func New(config Config) (*App, error) {
 	if config.DatabasePath == "" {
-		config.DatabasePath = constant.DefaultDatabaseFile
+		config.DatabasePath = database.DefaultPath()
 	}
 	store, err := database.Open(config.DatabasePath)
 	if err != nil {
@@ -503,7 +503,7 @@ func (a *App) Usage() string {
 		output.WriteString("  --exclude-domain x.com      排除域名（可重复）\n")
 		output.WriteString("  --api-key KEY        认证 API Key\n")
 		output.WriteString("  --user / --pass      基础认证\n")
-		output.WriteString("  --db vecmap.db       本地数据库路径\n")
+		output.WriteString("  --db ~/.vecmap/vecmap.db   本地数据库路径（默认在用户主目录）\n")
 		output.WriteString("  --lang en|zh         界面语言\n")
 	} else {
 		output.WriteString("Usage: vecmap <command> [options]\n\n")
@@ -527,7 +527,7 @@ func (a *App) Usage() string {
 		output.WriteString("  --exclude-domain x.com      Excluded domain (repeatable)\n")
 		output.WriteString("  --api-key KEY        Auth API key\n")
 		output.WriteString("  --user / --pass      Basic auth\n")
-		output.WriteString("  --db vecmap.db       Local database path\n")
+		output.WriteString("  --db ~/.vecmap/vecmap.db   Local database path (default in the user's home directory)\n")
 		output.WriteString("  --lang en|zh         UI language\n")
 	}
 	return output.String()

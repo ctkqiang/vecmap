@@ -3,6 +3,7 @@ package test
 import (
 	"context"
 	"errors"
+	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -135,6 +136,23 @@ func TestStoreDeleteSessionCascade(t *testing.T) {
 	}
 	if _, err := store.GetSession("missing"); !errors.Is(err, database.ErrNotFound) {
 		t.Fatalf("expected ErrNotFound, got %v", err)
+	}
+}
+
+func TestDefaultPathInHomeDirectory(t *testing.T) {
+	path := database.DefaultPath()
+	if path == "" {
+		t.Fatalf("expected non-empty default path")
+	}
+	home, err := os.UserHomeDir()
+	if err != nil || home == "" {
+		t.Skipf("home directory is not resolvable: %v", err)
+	}
+	if filepath.Dir(path) != filepath.Join(home, ".vecmap") {
+		t.Fatalf("expected default path under ~/.vecmap, got %q", path)
+	}
+	if filepath.Base(path) != "vecmap.db" {
+		t.Fatalf("expected vecmap.db basename, got %q", filepath.Base(path))
 	}
 }
 
