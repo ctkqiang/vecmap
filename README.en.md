@@ -1,94 +1,248 @@
-<div align="center">
-
 # vecmap
 
-**Vector database attack-surface assessment framework** — 向量数据库攻击面评估框架
+<p align="center">
+  <img src="docs/logo.svg" alt="vecmap Logo" width="120" height="120">
+</p>
 
-A sqlmap-style deep-reconnaissance tool for AI / RAG / vector retrieval infrastructure
+<p align="center">
+  <strong>Vector database attack-surface assessment framework</strong>
+</p>
 
-[简体中文](README.md) | English
+<p align="center">
+  Author: <strong>Zhong Zhiqiang</strong> · Nezha Network Security
+</p>
 
-</div>
+<p align="center">
+  <a href="https://go.dev/"><img src="https://img.shields.io/badge/Language-Go_1.27-00ADD8.svg" alt="Go"></a>
+  <a href="#target-formats"><img src="https://img.shields.io/badge/Vendors-Qdrant_·_Milvus_·_Weaviate_·_Chroma_·_Redis_·_ES_·_pgvector_·_Typesense_·_Pinecone_·_Vespa-7C3AED.svg" alt="Vendors"></a>
+  <a href="#commands"><img src="https://img.shields.io/badge/Platform-macOS_·_Linux_·_Windows-165DFF.svg" alt="Platform"></a>
+  <a href="#build--run"><img src="https://img.shields.io/badge/Build-make-00B42A.svg" alt="make"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPL--3.0-blue.svg" alt="GPL-3.0"></a>
+</p>
+
+---
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Architecture](#architecture)
+- [Commands](#commands)
+- [Target Formats](#target-formats)
+- [Advisory Data Sources](#advisory-data-sources)
+- [Project Layout](#project-layout)
+- [Download](#download)
+- [Build & Run](#build--run)
+- [Testing](#testing)
+- [Security Best Practices](#security-best-practices)
+- [Disclaimer](#disclaimer)
+- [License](#license)
 
 ---
 
 ## Overview
 
-vecmap is a **local-only** Go CLI for performing sqlmap-style deep reconnaissance
-against **authorized** vector databases and retrieval infrastructure: product
-fingerprinting, read-only gRPC/REST probing, schema enumeration, record
-extraction, CVE/CNVD correlation, and MITRE ATT&CK reporting. All evidence and
-extracted data is persisted to a local SQLite database (WAL) for offline
-reproduction and report export.
+vecmap is a Go CLI for sqlmap-style attack-surface assessment of AI / RAG /
+vector retrieval infrastructure: product fingerprinting, read-only gRPC/REST
+probing, schema enumeration, record extraction, CVE/CNVD correlation, and MITRE
+ATT&CK reporting. All evidence and extracted data is persisted to a local SQLite
+database (WAL) and reproducible offline. No AI/LLM calls, no SaaS dependency, no
+destructive actions.
 
-**No AI/LLM calls, no SaaS dependency, no destructive actions.** Every probe is
-strictly read-only (GET/HEAD/OPTIONS and read-only POST); destructive endpoints
-such as `/management/stop`, `/delete`, `/drop`, and `/upsert` are hard-denied
-and never invoked.
+**Core features:**
 
-## Features
+| Feature              | Description                                                                         |
+| -------------------- | ----------------------------------------------------------------------------------- |
+| 11 vendor adapters   | Qdrant, Milvus, Weaviate, Chroma, Redis/RediSearch, Elasticsearch, OpenSearch, pgvector, Typesense, Pinecone, Vespa; registry-driven, no core-engine vendor branches |
+| Reflection-driven gRPC | v1alpha server reflection + dynamicpb descriptor calls + raw-wire fallback, zero generated stubs |
+| Read-only by design  | GET/HEAD/OPTIONS and read-only POST only; `/management/stop`, `/delete`, `/drop`, `/upsert` and other destructive paths are hard-denied, never invoked |
+| Deep extraction      | Collection schemas, dimensions, metrics, index types, point counts, field definitions, record payloads, and vector samples — all limits configurable |
+| Data-driven advisories | Embedded GitHub Security Advisory snapshots (GHSA JSON + extra + meta), zero Go hardcoding, CVE/CNVD version-range matching |
+| Bilingual + device locale | Every user-facing string in English and Chinese; the default follows the device system language (macOS AppleLanguages/AppleLocale) |
+| Full evidence chain  | HTTP request/response/hash/duration recorded for every exchange; headers, cookies, and URL query parameters auto-redacted |
+| Table-driven tests   | Version ranges, scope checks, wire codecs, advisory catalog, WAL, redaction, RESP, report rendering — all in an isolated `test/` package |
 
-| Capability | Details |
-|---|---|
-| Vendor adapters | Qdrant, Milvus, Weaviate, Chroma, Redis/RediSearch, Elasticsearch, OpenSearch, PostgreSQL pgvector, Typesense, Pinecone, Vespa |
-| Fingerprinting | REST endpoint fingerprints, gRPC health checks + server reflection, raw protobuf string extraction |
-| Real protocols | Reflection-driven dynamic gRPC calls (dynamicpb + protojson) with raw-wire fallback, Redis RESP client, PostgreSQL wire protocol (pgx) |
-| Read-only probing | Per-vendor probe catalogs with a hard destructive-path denylist and permissive-CORS detection |
-| Deep extraction | Collection schemas, dimensions, metrics, index types, point counts, field definitions, record payloads, and vector samples |
-| Advisory correlation | Embedded GitHub Security Advisory snapshots (data-driven, zero Go hardcoding), version-range matching against CVE/CNVD |
-| Risk analysis | Unauthenticated enumeration/extraction, metrics/docs/snapshot exposure, CORS, gRPC reflection, cleartext endpoints — bilingual text with MITRE mappings |
-| Reports | Markdown / JSON / HTML with a risk summary, MITRE coverage table, and evidence appendix |
-| Persistence | SQLite WAL at `~/.vecmap/vecmap.db` (dir 0700, file 0600) |
-| Localization | Every user-facing string is bilingual; the default language follows the device setting (macOS system language) |
-| CLI UX | ASCII banner, colored TUI, `help`/`--usage`/`man` manual page, bash/zsh completion, standard exit codes |
+**Legal notice (PRC):** Article 27 of the Cybersecurity Law of the People's
+Republic of China prohibits unauthorized intrusion into networks, disruption of
+network functions, and theft of network data; scanning, enumerating, or
+extracting data from vector databases without authorization may violate Article
+285 of the PRC Criminal Law (illegal intrusion / illegal acquisition of computer
+information system data). Use this tool **only on assets you own or with written
+authorization**, and verify compliance with your local laws.
 
-## Installation
+---
 
-### Go Install (no clone required)
+## Architecture
+
+The application layer depends only on adapter ports (Adapter: Vendor /
+Fingerprint / Probe / Enumerate); vendor implementations live in
+`internal/engine/vendors`, with protocol clients and the evidence chain injected
+through `Runtime`.
+
+```mermaid
+flowchart TB
+    CLI["cmd/vecmap/main.go<br/>command routing: scan / discover / dump / sessions / report / advisories / delete / help / man / completion"] --> APP["internal/app<br/>argument parsing · orchestration · TUI help/man/completion"]
+    APP --> REG["internal/engine<br/>adapter registry · targets/scope · HTTP/gRPC/RESP · discovery · probing · fingerprinting · risk analysis · extraction"]
+    REG --> ADAPT["internal/engine/vendors<br/>11 vendor adapters · RegisterAll"]
+    ADAPT --> PROTO["HTTP evidence chain (redaction/rate-limit/hash)<br/>gRPC health + reflection dynamic calls + raw wire<br/>Redis RESP · PostgreSQL wire protocol (pgx)"]
+    APP --> DB[("SQLite WAL<br/>~/.vecmap/vecmap.db<br/>sessions/targets/collections/records/findings/evidence")]
+    APP --> REPORT["internal/report<br/>Markdown / JSON / HTML<br/>risk summary · MITRE coverage · evidence appendix"]
+    ADV["internal/constant/data/advisories<br/>GHSA snapshots · extra · meta"] -.-> REG
+    MITRE["internal/constant/mitre.go<br/>85 techniques · 14 tactics · bilingual"] -.-> REG
+    I18N["internal/utilities/i18n<br/>bilingual messages · version ranges · redaction"] -.-> APP
+```
+
+---
+
+## Commands
+
+```bash
+vecmap scan [OPTIONS] TARGET...               # attack-surface scan: fingerprint, read-only probes, CVE/CNVD correlation
+vecmap discover [OPTIONS] HOST|CIDR...        # concurrent TCP/HTTP/TLS/gRPC/RESP port discovery
+vecmap dump [OPTIONS] TARGET...               # deep enumeration and record extraction (--mode deep --extract)
+vecmap sessions                               # list local sessions
+vecmap report --session <id> [--format md|json|html] [--output PATH]   # export a session report
+vecmap advisories                             # list the built-in advisory catalog
+vecmap delete --session <id>                  # delete a session (cascading)
+vecmap version                                # print the version
+vecmap help [command]                         # overview or per-command help (--usage for synopsis only)
+vecmap man                                    # roff manual page (en/zh, pipe to man -l -)
+vecmap completion bash|zsh                    # shell completion scripts
+```
+
+| Command      | Purpose                              | Key options |
+| ------------ | ------------------------------------ | ----------- |
+| `scan`       | Fingerprinting + read-only probes + advisory correlation + findings | `--mode` `--extract` `--vectors` `--fuzz` `--api-key` `--scope-cidr` |
+| `discover`   | Concurrent port discovery; open ports persisted as session targets | `--ports` `--timeout` `--concurrency` |
+| `dump`       | Collection schema enumeration + record/vector extraction | `--collection` `--namespace` `--max-records` `--batch` |
+| `sessions`   | Local session list (colored status) | `--db` |
+| `report`     | Offline report rendering (Markdown/JSON/HTML) | `--format` `--output` `--lang` |
+| `advisories` | Built-in advisory catalog (data-driven) | `--lang` |
+| `delete`     | Session cascade deletion            | `--session` |
+| `man`        | Manual page output (en/zh)          | `--lang` |
+| `completion` | bash/zsh completion                 | — |
+
+The full help output is shown in [Help Output](#help-output) below; Chinese
+devices get the Chinese variant by default.
+
+---
+
+## Target Formats
+
+```bash
+http://host:6333                        # Qdrant REST / gRPC 6334
+https://host                            # HTTPS endpoints (Pinecone etc.)
+redis://host:6379                       # Redis / RediSearch
+postgres://user:pass@host:5432/db       # PostgreSQL pgvector
+grpc://host:19530                       # Milvus gRPC
+10.0.0.5:6333                           # bare host:port
+10.0.0.0/24                             # CIDR (expanded with --ports)
+```
+
+| Vendor | Ports | Authentication |
+| ------ | ----- | -------------- |
+| Qdrant | 6333, 6334 | `--api-key` (`api-key` header) |
+| Milvus | 19530, 9091 | none / `--bearer` |
+| Weaviate | 8080, 50051 | `--bearer` |
+| Chroma | 8000 | `--bearer` |
+| Redis | 6379, 6380 | `--user`/`--pass` (AUTH) |
+| Elasticsearch / OpenSearch | 9200, 9300 | `--api-key` (`ApiKey` header) |
+| pgvector | 5432 | `--dsn` or `--user`/`--pass`/`--database` |
+| Typesense | 8108 | `--api-key` (`X-TYPESENSE-API-KEY` header) |
+| Pinecone | 443 | `--api-key` (`Api-Key` header) |
+| Vespa | 8080, 19071 | none |
+
+---
+
+## Advisory Data Sources
+
+The built-in catalog has **zero Go hardcoding** — it is loaded from embedded data
+files (`internal/constant/data/advisories/`, compiled in via `go:embed`):
+
+| File | Contents |
+| ---- | -------- |
+| `GHSA-*.json` | Official GitHub Advisory API record snapshots |
+| `extra.json` | Supplementary entries without a public GHSA JSON (CVE-2026-69111, CVE-2026-92782, two Typesense entries), same schema |
+| `meta.json` | Chinese localization, vendor attribution, CVE↔CNVD linkage, MITRE mappings, match policies, and range corrections |
+
+Refresh: `bash scripts/refresh_advisories.sh`. Unverified external advisories
+(`--advisories path.json`) are listed but never auto-matched.
+
+---
+
+## Project Layout
+
+```
+vecmap/
+├── cmd/vecmap/main.go                    # entrypoint: command routing and output
+├── internal/
+│   ├── app/                              # argument parsing · orchestration · TUI help/man/completion
+│   ├── engine/                           # registry · targets/scope · HTTP/gRPC/RESP · discovery · probing · fingerprinting · analysis · extraction
+│   │   └── vendors/                      # 11 vendor adapters · RegisterAll
+│   ├── model/                            # session/target/collection/record/finding/advisory/report models
+│   ├── database/                         # SQLite store (WAL · cascade deletes · session aggregation)
+│   ├── report/                           # report rendering (Markdown/JSON/HTML)
+│   ├── constant/                         # constants · MITRE catalog · advisory data loader
+│   │   └── data/advisories/              # GHSA snapshots · extra · meta
+│   ├── utilities/                        # i18n · version ranges · redaction · formatting
+│   │   └── logger/                       # user's logging module (preserved as-is)
+│   └── logger/                           # internal logging adapter
+├── test/                                 # all *_test.go (isolated package, table-driven)
+├── docs/                                 # manual pages (vecmap.1 / vecmap.zh.1) · logo.svg
+├── scripts/refresh_advisories.sh         # advisory snapshot refresh
+└── Makefile                              # build / inspect / clean
+```
+
+---
+
+## Download
+
+### go install (simplest, no clone required)
 
 ```bash
 go install github.com/ctkqiang/vecmap/cmd/vecmap@latest
 ```
 
-The binary lands in `$(go env GOPATH)/bin/vecmap` — make sure it is on your `PATH`.
-Requires Go 1.27+ with CGO enabled (SQLite driver). For unreleased commits use
-`@main`; `@latest` resolves once a `v*` tag (e.g. `v1.0.0`) is pushed.
+> `go install` names the binary after the last path segment (`cmd/vecmap` →
+> `vecmap`). It lands in `$(go env GOPATH)/bin/` (usually `~/go/bin/` on
+> macOS/Linux). If you get `command not found`, add that directory to your
+> `PATH`:
+>
+> ```bash
+> echo 'export PATH=$PATH:$HOME/go/bin' >> ~/.zshrc   # zsh users
+> source ~/.zshrc
+> ```
 
-### Build from source
+Use `@main` for unreleased commits; `@latest` resolves once a `v*` tag (e.g.
+`v1.0.0`) is pushed. Prebuilt cross-platform binaries can be published to
+[GitHub Releases](https://github.com/ctkqiang/vecmap/releases) via GitHub Actions
+after tagging (CI is not configured yet).
+
+---
+
+## Build & Run
+
+### Prerequisites
+
+- Go 1.27+ with CGO enabled (SQLite driver)
+- macOS / Linux / Windows (the only platform-specific code is macOS device-language detection)
+
+### Make build
 
 ```bash
-go build -o build/vecmap ./cmd/vecmap
+make build     # build ./build/vecmap
+make inspect   # go vet ./...
+make clean     # remove build artifacts and the local session database
+go test ./...  # run the test suite
 ```
 
-## Quick Start
+### Localization
 
-```bash
-# Help (Chinese devices get Chinese by default; --lang=en switches to English)
-./build/vecmap help
-./build/vecmap help scan            # full options for one command
-./build/vecmap scan --usage         # synopsis only
+Chinese devices get Chinese out of the box; priority is `--lang` >
+`VECMAP_LANG` > device system language > English. `--lang=en` switches back at
+any time; a terminal that forces `LANG=en_US` does not override the device
+setting.
 
-# Standard scan: fingerprinting, read-only probes, CVE correlation
-./build/vecmap scan --authorize \
-  --scope-cidr 10.0.0.0/24 \
-  http://10.0.0.5:6333
-
-# Deep scan: enumerate collections, extract records and vectors
-./build/vecmap dump --authorize --vectors --max-records 500 \
-  --scope-cidr 10.0.0.0/24 \
-  http://10.0.0.5:6333
-
-# Port discovery
-./build/vecmap discover --authorize --scope-cidr 10.0.0.0/24 10.0.0.0/24
-
-# Sessions and reports
-./build/vecmap sessions
-./build/vecmap report --session <id> --format markdown --output report.md
-
-# Manual page and shell completion
-./build/vecmap man | man -l -
-source <(./build/vecmap completion bash)
-```
+---
 
 ## Help Output
 
@@ -164,172 +318,68 @@ and pass --authorize. Unauthorized scanning is illegal.
 See 'vecmap help <command>' for per-command options, and 'vecmap man' for the manual.
 ```
 
-## Commands
+---
 
-| Command | Description |
-|---|---|
-| `scan` | Attack-surface scan (fingerprinting, probes, advisory correlation; `--mode deep` extracts data) |
-| `discover` | Concurrent TCP/HTTP/TLS/gRPC/RESP port discovery across hosts/CIDRs |
-| `dump` | Deep enumeration and record extraction (implies `--mode deep --extract`) |
-| `sessions` | List local sessions |
-| `report` | Export a session report (markdown/json/html) |
-| `advisories` | List the built-in advisory catalog |
-| `delete` | Delete a session (cascading) |
-| `version` | Print the version |
-| `help` | Overview or per-command help |
-| `man` | roff manual page (English/Chinese) |
-| `completion` | bash/zsh completion scripts |
+## Testing
 
-## Target Formats
-
-```
-http://host:6333   https://host   redis://host:6379
-postgres://user:pass@host/db   grpc://host:19530
-10.0.0.5:6333      10.0.0.0/24 (CIDR, expanded with --ports)
-```
-
-Vendor default ports:
-
-| Vendor | Ports |
-|---|---|
-| Qdrant | 6333, 6334 |
-| Milvus | 19530, 9091 |
-| Weaviate | 8080, 50051 |
-| Chroma | 8000 |
-| Redis | 6379, 6380 |
-| Elasticsearch / OpenSearch | 9200, 9300 |
-| pgvector | 5432 |
-| Typesense | 8108 |
-| Pinecone | 443 |
-| Vespa | 8080, 19071 |
-
-## Authentication
-
-| Flag | Description |
-|---|---|
-| `--api-key KEY` | API key; header chosen per vendor (Qdrant `api-key`, Typesense `X-TYPESENSE-API-KEY`, Pinecone `Api-Key`, ES/OpenSearch `ApiKey`, others `Bearer`) |
-| `--bearer TOKEN` | `Authorization: Bearer` |
-| `--user` / `--pass` | HTTP Basic |
-| `--dsn DSN` | PostgreSQL connection string |
-| `--database NAME` | Database name / tenant path / Redis DB number |
-
-## Scope and Authorization
-
-- **`--authorize` is required**: obtain written permission for the target scope
-  before scanning; unauthorized scanning is illegal.
-- `--scope-cidr` / `--scope-domain`: authorized scope (repeatable); when set,
-  unmatched hosts are denied.
-- `--exclude-cidr` / `--exclude-domain`: exclusions; exclusion-only scopes are
-  otherwise permissive.
-- `--scope-port`: port allowlist.
-- Read-only operations only; `/management/stop` is correlated by version but
-  never requested.
-
-## Advisory Data Sources
-
-The built-in catalog has **zero Go hardcoding** — it is loaded from embedded data
-files (`internal/constant/data/advisories/`, compiled in via `go:embed`):
-
-| File | Contents |
-|---|---|
-| `GHSA-*.json` | Official GitHub Advisory API record snapshots |
-| `extra.json` | Supplementary entries without a public GHSA JSON (CVE-2026-69111, CVE-2026-92782, two Typesense entries), same schema |
-| `meta.json` | Chinese localization, vendor attribution, CVE↔CNVD linkage, MITRE mappings, match policies, and range corrections |
-
-Refresh: `bash scripts/refresh_advisories.sh`. Unverified external advisories
-(`--advisories path.json`) are listed but never auto-matched.
-
-## Data and Reports
-
-- Database defaults to `~/.vecmap/vecmap.db` (override with `--db` or `VECMAP_DB`),
-  WAL + busy_timeout.
-- Sessions aggregate targets, steps, probes, collections, records, findings, and
-  HTTP evidence; `sessions`/`report` reproduce everything offline.
-- MITRE ATT&CK catalog: 85 techniques across 14 tactics, bilingual; findings map
-  to T1595/T1046/T1213/T1567 and more.
-
-## Exit Codes and Environment Variables
-
-| Exit code | Meaning |
-|---|---|
-| 0 | Success |
-| 1 | Runtime error (network, database, adapter) |
-| 2 | Usage error (unknown command, missing required argument, missing `--authorize`) |
-
-| Variable | Effect |
-|---|---|
-| `VECMAP_DB` | Default database path |
-| `VECMAP_LANG` | Default UI language (`en`/`zh`) |
-| `NO_COLOR` | Disable colored output |
-| `HTTP_PROXY` / `HTTPS_PROXY` | Used by the HTTP client when `--proxy` is not set |
-
-## Localization
-
-- **Every user-facing string is bilingual**: help, manual page (Chinese version
-  selected automatically), error/usage hints, table headers and values, the scan
-  report card, finding texts, and reports (Markdown/HTML/JSON).
-- **The default follows the device**: `--lang` > `VECMAP_LANG` > device system
-  language (macOS `AppleLanguages`/`AppleLocale`; on Linux the locale environment
-  variables) > English.
-- Chinese devices get Chinese out of the box; `--lang=en` switches back. A
-  terminal that forces `LANG=en_US` does not override the device setting.
-
-## Development
+Tests live in the isolated [test/](test/) package and cover version ranges,
+scope checks, protobuf wire codecs, advisory matching, SQLite/WAL, redaction,
+RESP parsing, probe-catalog safety, report rendering, and CLI parsing:
 
 ```bash
-make build    # build ./build/vecmap
-make inspect  # go vet ./...
-make clean    # remove build artifacts and the local session database
-go test ./... # run the test suite (package test)
+go test ./...
 ```
 
-`make manpage` syncs the embedded manual pages to `docs/vecmap.1` and
-`docs/vecmap.zh.1` for system-wide installation.
+---
 
-## Project Layout
+## Security Best Practices
 
-```
-cmd/vecmap/              CLI entrypoint
-internal/app/            argument parsing, orchestration, help/man/completion, TUI
-internal/engine/         engine: registry, targets, scope, HTTP/gRPC/RESP,
-                         discovery, probing, fingerprinting, analysis, extraction
-internal/engine/vendors/ 11 vendor adapters + RegisterAll
-internal/model/          data models (sessions/targets/collections/records/findings/advisories/reports)
-internal/database/       SQLite store (WAL, cascade deletes, session aggregation)
-internal/report/         report rendering (Markdown/JSON/HTML)
-internal/constant/       constants, MITRE catalog, advisory data loader
-internal/utilities/      i18n, version ranges, redaction, formatting
-internal/logger/         logging adapter (wraps utilities/logger)
-test/                    tests (package test)
-docs/                    manual pages (English/Chinese roff)
-scripts/                 advisory snapshot refresh script
-```
+- The destructive-path denylist lives in `internal/engine/fuzz.go`; every probe
+  catalog path passes through it. Milvus `/management/stop` is correlated by
+  version only and never requested.
+- Credentials exist only in memory (`Credentials` is never serialized); HTTP
+  evidence is redacted (Authorization/Cookie/api_key/sensitive query params).
+- Scope checks run before any traffic: allowlists / exclusions / port
+  allowlists; out-of-scope targets are rejected outright.
+- Extraction limits are configurable (`--max-records`/`--batch`/
+  `--max-vector-values`); payload truncation and vector sampling bound response sizes.
+- No shell concatenation, no remote payload execution, no new destructive
+  capabilities are added automatically.
 
 ## Disclaimer
 
-vecmap is for **authorized security assessments only**. You must obtain written
-permission for the target assets and are responsible for your own actions. The
-tool contains no exploits, no denial-of-service, and no destructive functionality.
+This project is for **authorized security assessments and educational
+experiments only**. Within the People's Republic of China, usage is subject to
+the Cybersecurity Law and the Criminal Law (see the legal notice in
+[Overview](#overview)); using it against unauthorized targets is illegal and the
+consequences rest entirely with the user.
+
+## License
+
+This project is licensed under the [GNU General Public License v3.0](LICENSE):
+
+- Free to use, modify, and distribute the source code
+- Modified versions must be released under GPL-3.0 as well
+- The full license text and copyright notice must accompany any distribution
 
 ---
 
 <div align="center">
 
-<h2>支持</h2>
+<h2>Support</h2>
 
-<p>如果您觉得本项目对您有帮助，欢迎请我喝杯咖啡</p>
-<p><sub>您的支持是我持续维护和改进的动力</sub></p>
+<p>If this project has helped you, consider buying me a coffee</p>
+<p><sub>Your support keeps the maintenance going</sub></p>
 
 <br/>
 
-<strong>微信扫码捐赠</strong><br/><br/>
+<strong>WeChat donation QR</strong><br/><br/>
 <img src="https://raw.gitcode.com/ctkqiang_sr/ctkqiang_sr/raw/main/mm_reward_qrcode_1778988737577.png"
-     alt="微信扫码捐赠"
+     alt="WeChat donation QR"
      width="240"
      style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
 
 <br/>
 <br/>
-</div>
 
----
+</div>
