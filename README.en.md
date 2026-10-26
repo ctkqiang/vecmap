@@ -45,9 +45,11 @@
 vecmap is a Go CLI for sqlmap-style attack-surface assessment of AI / RAG /
 vector retrieval infrastructure: product fingerprinting, read-only gRPC/REST
 probing, schema enumeration, record extraction, CVE/CNVD correlation, and MITRE
-ATT&CK reporting. All evidence and extracted data is persisted to a local SQLite
-database (WAL) and reproducible offline. No AI/LLM calls, no SaaS dependency, no
-destructive actions.
+ATT&CK reporting. **The tool runs locally, but targets can be any host on the
+internet, in production, or on an intranet** — just like sqlmap, any address
+(URL / domain / IP / CIDR) can be scanned once authorized. All evidence and
+extracted data is persisted to a local SQLite database (WAL) and reproducible
+offline. No AI/LLM calls, no SaaS dependency, no destructive actions.
 
 **Core features:**
 
@@ -269,7 +271,8 @@ USAGE
   vecmap <command> --help
 
 DESCRIPTION
-  vecmap is a local-only, sqlmap-style attack-surface assessment framework for
+  vecmap is a locally-run, sqlmap-style attack-surface assessment framework for
+  vector databases anywhere on the network — internet, intranet, or production.
   vector databases and retrieval infrastructure (Qdrant, Milvus, Weaviate, Chroma,
   Redis, Elasticsearch, OpenSearch, pgvector, Typesense, Pinecone, Vespa).
   All probes are strictly read-only; destructive endpoints are never invoked.

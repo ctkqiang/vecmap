@@ -461,8 +461,11 @@ func renderOverview(language string) string {
 	output.WriteString("  vecmap <command> --help\n\n")
 	output.WriteString(paint(helpTitle, localized(zh, "DESCRIPTION", "说明")) + "\n")
 	output.WriteString("  " + localized(zh,
-		"vecmap is a local-only, sqlmap-style attack-surface assessment framework for",
-		"vecmap 是一个本地运行、sqlmap 风格的攻击面评估框架，面向") + "\n")
+		"vecmap is a locally-run, sqlmap-style attack-surface assessment framework for",
+		"vecmap 是一个在本地运行、sqlmap 风格的攻击面评估框架，面向") + "\n")
+	output.WriteString("  " + localized(zh,
+		"vector databases anywhere on the network — internet, intranet, or production.",
+		"网络上任意位置的向量数据库——互联网公网、内网或生产环境均可扫描。") + "\n")
 	output.WriteString("  " + localized(zh,
 		"vector databases and retrieval infrastructure (Qdrant, Milvus, Weaviate, Chroma,",
 		"向量数据库与检索基础设施（Qdrant、Milvus、Weaviate、Chroma、") + "\n")

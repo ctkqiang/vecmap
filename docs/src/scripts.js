@@ -6,7 +6,7 @@ const I18N = {
     lang: "zh",
     toggle: "EN",
     hero: {
-      badge: "v1.0.0 · 本地运行 · 只读探测 · GPL-3.0",
+      badge: "v1.0.0 · 互联网/内网任意目标 · 只读探测 · GPL-3.0",
       title: "向量数据库攻击面评估框架",
       subtitle: "sqlmap 风格的 AI / RAG / 向量检索基础设施深度侦察工具：指纹识别、只读探测、模式枚举、记录提取、CVE/CNVD 关联与 MITRE ATT&CK 报告。",
       copy: "复制",
@@ -154,7 +154,7 @@ vecmap completion bash|zsh               # shell 补全脚本`,
     lang: "en",
     toggle: "中文",
     hero: {
-      badge: "v1.0.0 · local-only · read-only probing · GPL-3.0",
+      badge: "v1.0.0 · any target · internet/intranet · read-only probing · GPL-3.0",
       title: "Vector Database Attack-Surface Assessment Framework",
       subtitle: "A sqlmap-style deep-reconnaissance tool for AI / RAG / vector retrieval infrastructure: fingerprinting, read-only probing, schema enumeration, record extraction, CVE/CNVD correlation, and MITRE ATT&CK reporting.",
       copy: "Copy",

@@ -44,7 +44,9 @@
 
 vecmap 是 Go 编写的向量数据库攻击面评估工具，sqlmap 风格的 AI / RAG / 向量检索
 基础设施深度侦察：指纹识别、gRPC/REST 只读探测、模式枚举、记录提取、
-CVE/CNVD 关联与 MITRE ATT&CK 报告。所有证据与提取数据持久化到本地 SQLite（WAL），
+CVE/CNVD 关联与 MITRE ATT&CK 报告。**工具在本地运行，但目标可以是互联网公网、
+生产环境或内网的任意主机**——与 sqlmap 一样，只要获得授权即可扫描任何地址
+（URL / 域名 / IP / CIDR）。所有证据与提取数据持久化到本地 SQLite（WAL），
 离线可复现。无 AI/LLM 调用、无 SaaS 依赖、无破坏性动作。
 
 **核心特性：**
