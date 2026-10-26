@@ -112,6 +112,19 @@ vecmap man                                    # roff manual page (en/zh, pipe to
 vecmap completion bash|zsh                    # shell completion scripts
 ```
 
+Typical usage (intranet assets or public production alike, just like sqlmap):
+
+```bash
+# Intranet asset: CIDR scope + read-only probing
+vecmap scan --authorize --scope-cidr 10.0.0.0/24 http://10.0.0.5:6333
+
+# Public production: API-key auth against any internet target (written authorization required)
+vecmap scan --authorize --api-key SECRET https://vecdb.prod.example.com:6333
+
+# Deep extraction: records + vector samples
+vecmap dump --authorize --vectors --max-records 500 https://vecdb.prod.example.com:6333
+```
+
 | Command      | Purpose                              | Key options |
 | ------------ | ------------------------------------ | ----------- |
 | `scan`       | Fingerprinting + read-only probes + advisory correlation + findings | `--mode` `--extract` `--vectors` `--fuzz` `--api-key` `--scope-cidr` |

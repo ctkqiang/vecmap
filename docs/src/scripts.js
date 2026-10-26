@@ -8,7 +8,7 @@ const I18N = {
     hero: {
       badge: "v1.0.0 · 互联网/内网任意目标 · 只读探测 · GPL-3.0",
       title: "向量数据库攻击面评估框架",
-      subtitle: "sqlmap 风格的 AI / RAG / 向量检索基础设施深度侦察工具：指纹识别、只读探测、模式枚举、记录提取、CVE/CNVD 关联与 MITRE ATT&CK 报告。",
+      subtitle: "sqlmap 风格的 AI / RAG / 向量检索基础设施深度侦察工具：可扫描互联网公网、生产环境或内网任意目标——指纹识别、只读探测、模式枚举、记录提取、CVE/CNVD 关联与 MITRE ATT&CK 报告。",
       copy: "复制",
       copied: "已复制",
       installNote: "一键安装（无需 clone）：二进制写入 $(go env GOPATH)/bin/vecmap，要求 Go 1.27+（CGO 开启）。",
@@ -48,7 +48,7 @@ const I18N = {
     commands: {
       title: "命令一览",
       desc: "全部命令均需 --authorize 确认已获书面授权；破坏性接口永不执行。",
-      code: `vecmap scan [OPTIONS] TARGET...          # 攻击面扫描：指纹、只读探测、CVE/CNVD 关联
+      code: `vecmap scan [OPTIONS] TARGET...          # 攻击面扫描：指纹、只读探测、CVE/CNVD 关联（互联网/内网任意目标）
 vecmap discover [OPTIONS] HOST|CIDR...   # 主机/网段并发端口发现
 vecmap dump [OPTIONS] TARGET...          # 深度枚举与记录提取
 vecmap sessions                          # 列出本地会话
@@ -156,7 +156,7 @@ vecmap completion bash|zsh               # shell 补全脚本`,
     hero: {
       badge: "v1.0.0 · any target · internet/intranet · read-only probing · GPL-3.0",
       title: "Vector Database Attack-Surface Assessment Framework",
-      subtitle: "A sqlmap-style deep-reconnaissance tool for AI / RAG / vector retrieval infrastructure: fingerprinting, read-only probing, schema enumeration, record extraction, CVE/CNVD correlation, and MITRE ATT&CK reporting.",
+      subtitle: "A sqlmap-style deep-reconnaissance tool for AI / RAG / vector retrieval infrastructure — scan any target on the internet, in production, or on an intranet: fingerprinting, read-only probing, schema enumeration, record extraction, CVE/CNVD correlation, and MITRE ATT&CK reporting.",
       copy: "Copy",
       copied: "Copied",
       installNote: "One-command install (no clone): the binary lands in $(go env GOPATH)/bin/vecmap. Requires Go 1.27+ with CGO enabled.",
@@ -196,7 +196,7 @@ vecmap completion bash|zsh               # shell 补全脚本`,
     commands: {
       title: "Commands",
       desc: "Every command requires --authorize confirming written permission; destructive endpoints are never invoked.",
-      code: `vecmap scan [OPTIONS] TARGET...          # attack-surface scan: fingerprint, read-only probes, CVE/CNVD correlation
+      code: `vecmap scan [OPTIONS] TARGET...          # attack-surface scan: fingerprint, read-only probes, CVE/CNVD correlation (any internet/intranet target)
 vecmap discover [OPTIONS] HOST|CIDR...   # concurrent host/CIDR port discovery
 vecmap dump [OPTIONS] TARGET...          # deep enumeration and record extraction
 vecmap sessions                          # list local sessions

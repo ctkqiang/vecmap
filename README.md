@@ -102,6 +102,19 @@ vecmap man                                    # roff 手册页（中/英，可�
 vecmap completion bash|zsh                    # shell 补全脚本
 ```
 
+典型用法（内网资产 / 公网生产环境均可，与 sqlmap 一致）：
+
+```bash
+# 内网资产：CIDR 授权范围 + 只读探测
+vecmap scan --authorize --scope-cidr 10.0.0.0/24 http://10.0.0.5:6333
+
+# 公网生产环境：API Key 认证，扫描任意互联网目标（需书面授权）
+vecmap scan --authorize --api-key SECRET https://vecdb.prod.example.com:6333
+
+# 深度提取：记录 + 向量采样
+vecmap dump --authorize --vectors --max-records 500 https://vecdb.prod.example.com:6333
+```
+
 | 命令        | 功能                         | 关键参数 |
 | ----------- | ---------------------------- | -------- |
 | `scan`      | 指纹识别 + 只读探测 + 公告关联 + 风险发现 | `--mode` `--extract` `--vectors` `--fuzz` `--api-key` `--scope-cidr` |

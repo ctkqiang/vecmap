@@ -205,6 +205,9 @@ expanded across
 .SH EXAMPLES
 .PP
 .nf
+# Public production target (any internet host, like sqlmap)
+vecmap scan \-\-authorize \-\-api\-key KEY https://vecdb.prod.example.com:6333
+# Intranet asset within an authorized CIDR
 vecmap scan \-\-authorize \-\-scope\-cidr 10.0.0.0/24 http://10.0.0.5:6333
 vecmap dump \-\-authorize \-\-max\-records 500 \-\-vectors http://10.0.0.5:6333
 vecmap discover \-\-authorize \-\-scope\-cidr 10.0.0.0/24 10.0.0.0/24

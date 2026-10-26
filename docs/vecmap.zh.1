@@ -206,6 +206,9 @@ URL
 .SH 示例
 .PP
 .nf
+# 公网生产环境目标（互联网任意主机，与 sqlmap 一致，需书面授权）
+vecmap scan \-\-authorize \-\-api\-key KEY https://vecdb.prod.example.com:6333
+# 授权 CIDR 范围内的内网资产
 vecmap scan \-\-authorize \-\-scope\-cidr 10.0.0.0/24 http://10.0.0.5:6333
 vecmap dump \-\-authorize \-\-max\-records 500 \-\-vectors http://10.0.0.5:6333
 vecmap discover \-\-authorize \-\-scope\-cidr 10.0.0.0/24 10.0.0.0/24
